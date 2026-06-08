@@ -1,26 +1,26 @@
-import { useAuth } from './hooks/useAuth.js';
-import Login from './Login.jsx';
-import Dashboard from './Dashboard.jsx';
-import { C, SANS } from './constants.js';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-export default function App() {
-  const { user, loading, logout } = useAuth();
-
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh', display: 'grid', placeItems: 'center',
-        background: C.ink9, fontFamily: SANS,
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 48, color: C.acc, marginBottom: 16 }}>◐</div>
-          <p style={{ color: C.ink3, fontSize: 13 }}>Loading…</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) return <Login />;
-
-  return <Dashboard user={user} onLogout={logout} />;
-}
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    outDir: 'dist',
+  },
+  server: {
+    // Allow Netlify's cloud Preview Server (it runs `vite` and serves it from
+    // devserver-<branch>--ovmgdashboard.netlify.app). The leading dot allows
+    // netlify.app and every subdomain, so any branch's preview works. Only
+    // affects the dev server — production `vite build` output is unaffected.
+    allowedHosts: ['.netlify.app'],
+    // Pin Vite to 5173 and fail loudly if it's taken, instead of silently
+    // drifting to 5174/5175 (which crosses wires with netlify dev's targetPort).
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/.netlify/functions': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+      },
+    },
+  },
+});

@@ -1,8 +1,1 @@
-node_modules/
-dist/
-.env
-.env.local
-.netlify/
-*.log
-.DS_Store
-Thumbs.db
+,dreamy-compassionate-pascal,claude,13.05.2026 22:47,file:///sessions/dreamy-compassionate-pascal/.config/libreoffice/4;

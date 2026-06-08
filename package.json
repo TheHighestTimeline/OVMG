@@ -1,139 +1,30 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import type { Project, Stage, AuditEvent } from "./types";
-import { SEED_PROJECTS } from "./data/seed";
-import { TEMPLATE_BOM, TEMPLATE_VENDORS, TEMPLATE_BUILD_TASKS } from "./data/templates";
-import { uid, nextProjectId, todayISO, daysFromNow } from "./lib/util";
-
-const STORAGE_KEY = "dcb-tracker-v1";
-
-interface NewBoxInput {
-  name: string;
-  customer: string;
-  contractNo: string;
-  requestedDelivery: string;
-  owner: string;
-}
-
-interface Store {
-  projects: Project[];
-  getProject: (id: string) => Project | undefined;
-  updateProject: (id: string, updater: (p: Project) => Project) => void;
-  addProject: (input: NewBoxInput) => Project;
-  deleteProject: (id: string) => void;
-  moveStage: (id: string, stage: Stage) => void;
-  logAudit: (id: string, action: string, entity: string) => void;
-  resetDemo: () => void;
-}
-
-const StoreContext = createContext<Store | null>(null);
-
-function load(): Project[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as Project[];
-  } catch {
-    /* ignore */
+{
+  "name": "onevibe-internal-hub",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "@clerk/backend": "^1.0.0",
+    "@clerk/clerk-react": "^5.0.0",
+    "@notionhq/client": "^2.2.15",
+    "@supabase/supabase-js": "^2.45.0",
+    "googleapis": "^140.0.1",
+    "openai": "^4.52.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.2"
+  },
+  "engines": {
+    "node": ">=22"
   }
-  return SEED_PROJECTS;
-}
-
-export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>(load);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-    } catch {
-      /* quota — ignore in MVP */
-    }
-  }, [projects]);
-
-  const getProject = (id: string) => projects.find((p) => p.id === id);
-
-  const updateProject = (id: string, updater: (p: Project) => Project) => {
-    setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...updater(p), updatedAt: todayISO() } : p)),
-    );
-  };
-
-  const logAudit = (id: string, action: string, entity: string) => {
-    const evt: AuditEvent = { id: uid("a"), timestamp: todayISO(), user: "Tanner South", action, entity };
-    setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, audit: [evt, ...p.audit], updatedAt: todayISO() } : p)),
-    );
-  };
-
-  const moveStage = (id: string, stage: Stage) => {
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id !== id) return p;
-        const evt: AuditEvent = { id: uid("a"), timestamp: todayISO(), user: "Tanner South", action: `Stage changed ${p.stage} → ${stage}`, entity: id };
-        return { ...p, stage, audit: [evt, ...p.audit], updatedAt: todayISO() };
-      }),
-    );
-  };
-
-  const addProject = (input: NewBoxInput): Project => {
-    const id = nextProjectId(projects.map((p) => p.id));
-    const vendors = TEMPLATE_VENDORS.map((v, i) => ({ ...v, id: `${id}-vend-${i + 1}` }));
-    const newProject: Project = {
-      id,
-      name: input.name,
-      customer: input.customer,
-      contractNo: input.contractNo || "TBD",
-      requestedDelivery: input.requestedDelivery || daysFromNow(120),
-      stage: "Planning",
-      location: "Not yet assigned",
-      owner: input.owner || "Tanner South",
-      description: "Standard 20-ft DCB build. Auto-populated from standard configuration template.",
-      securityRequirements: "ITAR controlled. Full nut-and-bolt traceability required.",
-      milestones: [
-        { label: "Requirement Capture", planned: daysFromNow(7) },
-        { label: "PO Issued", planned: daysFromNow(21) },
-        { label: "Components Received", planned: daysFromNow(60) },
-        { label: "Build Complete", planned: daysFromNow(95) },
-        { label: "Delivered", planned: input.requestedDelivery || daysFromNow(120) },
-      ],
-      stakeholders: [
-        { role: "Program Coordinator", name: input.owner || "Tanner South", email: "tanner.south@example.com" },
-      ],
-      bom: TEMPLATE_BOM.map((b, i) => ({ ...b, id: `${id}-bom-${i + 1}`, requiredDate: daysFromNow(45) })),
-      vendors,
-      purchaseOrders: [],
-      buildTasks: TEMPLATE_BUILD_TASKS.map((t, i) => ({ ...t, id: `${id}-task-${i + 1}` })),
-      inspections: [],
-      documents: [],
-      deployment: { siteAddress: "", containerSerial: "", shipMethod: "Flatbed truck", customerSignoff: false },
-      audit: [
-        { id: uid("a"), timestamp: todayISO(), user: input.owner || "Tanner South", action: "Project created (BOM + vendors auto-loaded from template)", entity: id },
-      ],
-      createdAt: todayISO(),
-      updatedAt: todayISO(),
-    };
-    setProjects((prev) => [newProject, ...prev]);
-    return newProject;
-  };
-
-  const deleteProject = (id: string) => {
-    setProjects((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const resetDemo = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setProjects(SEED_PROJECTS);
-  };
-
-  return (
-    <StoreContext.Provider
-      value={{ projects, getProject, updateProject, addProject, deleteProject, moveStage, logAudit, resetDemo }}
-    >
-      {children}
-    </StoreContext.Provider>
-  );
-}
-
-export function useStore(): Store {
-  const ctx = useContext(StoreContext);
-  if (!ctx) throw new Error("useStore must be used within StoreProvider");
-  return ctx;
 }

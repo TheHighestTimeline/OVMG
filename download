@@ -1,14 +1,17 @@
-# Notion Integration Token
-# Get from https://www.notion.so/my-integrations
-NOTION_TOKEN=secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# OpenAI API Key
-# Get from https://platform.openai.com/api-keys
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# Optional: override the models used
-OPENAI_TRANSCRIBE_MODEL=gpt-4o-mini-transcribe
-OPENAI_PARSE_MODEL=gpt-4o-mini
-
-# Netlify Identity URL (auto-set by Netlify — leave blank locally)
-# URL=https://your-site.netlify.app
+node_modules/
+dist/
+.env
+SEED-repo/
+OVM-website/
+social-dashboard-repo/
+.env.local
+.netlify/
+*.log
+.DS_Store
+Thumbs.db
+# Local tooling / scratch / working docs (not part of the app)
+.claude/
+_tooltest.txt
+Grazel_Negotiation_Brief.pdf
+Mandate_Analysis_Grazel_OneVibe.docx
+OneVibe_Hero_Video_Build_Sheet.md

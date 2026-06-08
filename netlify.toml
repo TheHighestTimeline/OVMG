@@ -1,50 +1,49 @@
-"""Strategist Agent - develops a real editorial angle with a thesis."""
-from crewai import Agent
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
 
+[build.environment]
+  # Node 22 ships a native global WebSocket. This is the root-cause fix for the
+  # "Node.js 18 detected without native WebSocket support" error that @supabase/
+  # realtime-js throws inside its RealtimeClient constructor (which @supabase/
+  # supabase-js calls eagerly in createClient) — it was crashing References,
+  # Cost, Audio Dump, Booking, every company page, and the Google OAuth flow.
+  NODE_VERSION = "22"
+  # Pin the Functions Lambda runtime to match the build Node version so the
+  # serverless functions also run on Node 22 (not just the build step).
+  AWS_LAMBDA_JS_RUNTIME = "nodejs22.x"
 
-def create_strategist(llm):
-    return Agent(
-        role="Editorial Strategist",
-        goal=(
-            "Turn a multi-source fact brief into a compelling story angle. "
-            "Not 'what happened' — but 'what it MEANS, why it matters today, "
-            "and how it connects to where the industry has been and where it's going.'"
-        ),
-        backstory=(
-            "You are an editorial director who has run newsrooms at The Register, "
-            "Data Center Knowledge, and The Next Platform. "
-            "You've seen every data center story there is, and you know the difference between "
-            "a press release and a story worth reading.\n\n"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
-            "YOUR PHILOSOPHY:\n"
-            "Every good article has ONE thesis — a single arguable claim the article proves. "
-            "Not 'Microsoft built a data center' but 'Microsoft's nuclear bet signals that hyperscalers "
-            "have given up waiting for the grid.' That's a thesis. That's an angle.\n\n"
+[dev]
+  command = "npm run dev"
+  targetPort = 5173
+  port = 8888
+  framework = "#custom"
 
-            "THE EDITORIAL ANGLES AVAILABLE TO YOU:\n"
-            "1. MULTI-SOURCE SYNTHESIS: 'Here's what three outlets missed individually but together reveal...'\n"
-            "2. WHAT THIS REALLY MEANS: Surface news hides a bigger trend — expose it\n"
-            "3. FOLLOW THE MONEY: Who profits, who pays, what the financial stakes are\n"
-            "4. FIRST DOMINO: This specific event triggers a chain reaction — trace it\n"
-            "5. HOW WE GOT HERE: Anchor the current event to 2-3 years of relevant history\n"
-            "6. ACCOUNTABILITY: What was promised vs. what actually happened\n"
-            "7. THE UNDERDOG/INCUMBENT BATTLE: Power dynamics shifting in real time\n\n"
+[functions]
+  node_bundler = "esbuild"
+  included_files = []
 
-            "YOUR BRIEF MUST INCLUDE:\n"
-            "THESIS (1 sentence): The single arguable claim this article will prove.\n"
-            "ANGLE: Which frame fits best and exactly why.\n"
-            "OPENING HOOK: A specific suggested first sentence — not a topic, an image or fact.\n"
-            "KEY TENSION: The conflict or contradiction at the heart of this story.\n"
-            "HISTORICAL CONTEXT: 1-2 past events or trends that make this moment significant. "
-            "Even if the Scout didn't find them, draw on industry knowledge to provide context.\n"
-            "NUMBERS TO FEATURE: The 2-3 most powerful figures from the brief.\n"
-            "WHAT TO AVOID: Any PR framing or spin to actively push back against.\n"
-            "SYNTHESIS OPPORTUNITY: If multiple sources were used, what does their combination reveal "
-            "that the journalist should make explicit in the article?\n\n"
-            "Be opinionated. Be specific. A vague brief produces a vague article."
-        ),
-        llm=llm,
-        verbose=False,
-        allow_delegation=False,
-        max_iter=2
-    )
+# ── Security headers — Phase 7 audit fix M-10 ───────────────────────────────
+# Content-Security-Policy + standard hardening headers applied to every
+# response. The CSP allows the dashboard to:
+#   - Run inline scripts/styles (required because the codebase uses inline
+#     style objects throughout — locking this down further is a Phase 15 cleanup)
+#   - Load scripts from Clerk (auth), JSDelivr (Websites iframe CDN), self
+#   - Make XHR/fetch to Clerk, Supabase, Anthropic, OpenAI, GitHub, Netlify,
+#     Notion, Google APIs
+#   - Embed iframes from Netlify (deploy previews) and the dashboard itself
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options             = "SAMEORIGIN"
+    X-Content-Type-Options      = "nosniff"
+    Referrer-Policy             = "strict-origin-when-cross-origin"
+    Permissions-Policy          = "camera=(self), microphone=(self), geolocation=(), payment=()"
+    Strict-Transport-Security   = "max-age=63072000; includeSubDomains; preload"
+    Content-Security-Policy     = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://*.supabase.co wss://*.supabase.co https://api.anthropic.com https://api.openai.com https://api.github.com https://raw.githubusercontent.com https://api.netlify.com https://api.notion.com https://www.googleapis.com https://accounts.google.com https://cdn.jsdelivr.net; frame-src 'self' https://*.netlify.app https://*.clerk.com https://*.clerk.accounts.dev https://drive.google.com https://docs.google.com https://*.notion.site https://*.notion.so; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';"
