@@ -1,146 +1,119 @@
-'use client'
+// Shared Notion client used by all functions.
+// Phase 7+ audit fix H-1: CORS restricted to known origins (was '*').
+import { Client } from '@notionhq/client';
 
-import { CHIP_TYPES, SITES, LISTINGS } from '@/lib/inventory'
+export const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
-export interface Filters {
-  q: string
-  status: string[]
-  chip: string[]
-  site: string[]
-}
+export const DB = {
+  CRM:           '311ec2c4642881c2af03f92bb583f4ba',
+  TASKS:         '311ec2c46428817a9cb8c18ea82101b0',
+  OPPORTUNITIES: '311ec2c4642881418073e7a92dbcf265',
+  GOALS:         '5baaa13aba09464aa686122518fd63e8',
+  FINANCIAL:     '20eec2c4642881608f64f87fd778f27e',
+  COMPANIES:     '312ec2c4642880aea5facc7396fb9327',
+  NOTES:         '314ec2c4642880e28bd2000b1bc2224d',
+  OUTREACH:      process.env.NOTION_OUTREACH_DB_ID || '',
+};
 
-interface Props {
-  filters: Filters
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>
-}
-
-const Arrow = () => (
-  <svg width={12} height={12} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
-// Static full-catalog counts
-const counts = (() => {
-  const c: { status: Record<string, number>; chip: Record<string, number>; site: Record<string, number> } =
-    { status: {}, chip: {}, site: {} }
-  LISTINGS.forEach(l => {
-    c.status[l.status] = (c.status[l.status] || 0) + 1
-    c.chip[l.chip]     = (c.chip[l.chip] || 0) + 1
-    c.site[l.siteCode] = (c.site[l.siteCode] || 0) + 1
-  })
-  return c
-})()
-
-export default function Sidebar({ filters, setFilters }: Props) {
-  const toggle = (key: keyof Omit<Filters, 'q'>, value: string) => {
-    setFilters(f => {
-      const cur = new Set(f[key])
-      cur.has(value) ? cur.delete(value) : cur.add(value)
-      return { ...f, [key]: Array.from(cur) }
-    })
+// ── Property readers ─────────────────────────────────────────────────────────
+export function getProp(page, name) {
+  const p = page.properties?.[name];
+  if (!p) return null;
+  switch (p.type) {
+    case 'title':        return p.title?.map(r => r.plain_text).join('') || '';
+    case 'rich_text':    return p.rich_text?.map(r => r.plain_text).join('') || '';
+    case 'select':       return p.select?.name || null;
+    case 'status':       return p.status?.name || null;
+    case 'multi_select': return p.multi_select?.map(s => s.name) || [];
+    case 'number':       return p.number ?? null;
+    case 'date':         return p.date?.start || null;
+    case 'checkbox':     return p.checkbox ?? false;
+    case 'email':        return p.email || null;
+    case 'phone_number': return p.phone_number || null;
+    case 'url':          return p.url || null;
+    case 'relation':     return p.relation?.map(r => r.id) || [];
+    case 'people':       return p.people?.map(u => u.name || u.id) || [];
+    case 'created_time': return p.created_time || null;
+    default:             return null;
   }
-  const clearAll = () => setFilters({ q: '', status: [], chip: [], site: [] })
+}
 
-  const activeCount =
-    filters.status.length + filters.chip.length + filters.site.length + (filters.q ? 1 : 0)
+// ── Property builders ─────────────────────────────────────────────────────────
+export function title(text) {
+  return { title: [{ text: { content: String(text || '') } }] };
+}
+export function richText(text) {
+  return { rich_text: [{ text: { content: String(text || '') } }] };
+}
+export function select(name) {
+  return name ? { select: { name } } : { select: null };
+}
+export function multiSelect(names = []) {
+  return { multi_select: names.map(n => ({ name: n })) };
+}
+export function date(iso) {
+  return iso ? { date: { start: iso } } : { date: null };
+}
+export function number(n) {
+  return { number: typeof n === 'number' ? n : null };
+}
+export function relation(ids = []) {
+  return { relation: ids.map(id => ({ id })) };
+}
 
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-head">
-        <span className="side-label">Filters</span>
-        {activeCount > 0 && (
-          <button className="clear-btn" onClick={clearAll}>Clear · {activeCount}</button>
-        )}
-      </div>
+// ── CORS — Phase 7 audit fix H-1 ─────────────────────────────────────────────
+// Was: 'Access-Control-Allow-Origin': '*' (anywhere)
+// Now: restricted to the deployed Netlify URL + localhost for local dev.
+//
+// Netlify automatically sets process.env.URL to the deployed site URL (for
+// production deploys), or the preview URL (for deploy previews), or
+// http://localhost:8888 (when running `netlify dev`). So this single source
+// of truth covers production + preview + local dev correctly with no manual
+// configuration.
+//
+// If you ever serve the dashboard from a custom domain, add it to
+// EXTRA_ALLOWED_ORIGINS env var (comma-separated) on Netlify.
+const PRIMARY_ORIGIN = process.env.URL || 'https://ovmgdashboard.netlify.app';
+const EXTRA = (process.env.EXTRA_ALLOWED_ORIGINS || '')
+  .split(',').map(s => s.trim()).filter(Boolean);
+const ALLOWED_ORIGINS = new Set([
+  PRIMARY_ORIGIN,
+  'http://localhost:8888',  // netlify dev default
+  'http://localhost:5173',  // vite dev default (when running netlify dev with target-port)
+  ...EXTRA,
+]);
 
-      {/* Search */}
-      <div className="search-wrap">
-        <svg width={14} height={14} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-          <path d="m11 11 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-        <input
-          value={filters.q}
-          onChange={e => setFilters(f => ({ ...f, q: e.target.value }))}
-          placeholder="Search chips, sites…"
-          className="search-input"
-        />
-      </div>
+function originHeaders(origin) {
+  const allowed = origin && ALLOWED_ORIGINS.has(origin) ? origin : PRIMARY_ORIGIN;
+  return {
+    'Access-Control-Allow-Origin':  allowed,
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+    'Vary':                          'Origin',
+  };
+}
 
-      {/* Status */}
-      <div className="filter-group">
-        <div className="filter-title">Status</div>
-        <div className="filter-list">
-          {[
-            { id: 'LIVE',      label: 'Live',      tone: 'live' },
-            { id: 'PRE-ORDER', label: 'Pre-order', tone: 'preorder' },
-          ].map(s => (
-            <button
-              key={s.id}
-              className={`filter-row ${filters.status.includes(s.id) ? 'is-active' : ''}`}
-              onClick={() => toggle('status', s.id)}
-            >
-              <span className="filter-row-left">
-                <span className={`dot dot-${s.tone}`} aria-hidden="true" />
-                <span>{s.label}</span>
-              </span>
-              <span className="filter-count">{counts.status[s.id] || 0}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+// Backwards-compat: existing handlers that import { CORS } get the primary
+// origin by default. New handlers should call corsFor(event) for per-request
+// origin matching.
+export const CORS = originHeaders(null);
 
-      {/* Chip type */}
-      <div className="filter-group">
-        <div className="filter-title">Chip type</div>
-        <div className="filter-list">
-          {CHIP_TYPES.map(c => (
-            <button
-              key={c}
-              className={`filter-row ${filters.chip.includes(c) ? 'is-active' : ''}`}
-              onClick={() => toggle('chip', c)}
-            >
-              <span className="filter-row-left">
-                <span className="chip-glyph">{c.startsWith('Blaize') ? 'QOS' : 'RTX'}</span>
-                <span>{c}</span>
-              </span>
-              <span className="filter-count">{counts.chip[c] || 0}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+export function corsFor(event) {
+  const origin = event?.headers?.origin || event?.headers?.Origin || '';
+  return originHeaders(origin);
+}
 
-      {/* Site */}
-      <div className="filter-group">
-        <div className="filter-title">Site</div>
-        <div className="filter-list">
-          {SITES.map(s => (
-            <button
-              key={s.code}
-              className={`filter-row ${filters.site.includes(s.code) ? 'is-active' : ''}`}
-              onClick={() => toggle('site', s.code)}
-            >
-              <span className="filter-row-left">
-                <span className="site-code">{s.code}</span>
-                <span>{s.name}</span>
-              </span>
-              <span className="filter-count">{counts.site[s.code] || 0}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Footer CTA */}
-      <div className="sidebar-foot">
-        <div className="foot-title">Need a custom block?</div>
-        <div className="foot-body">
-          Multi-site allocations &gt; 10 MW route through capital markets. Direct line, no portal.
-        </div>
-        <a href="mailto:compute@onevibemg.com" className="foot-link">
-          Talk to capacity desk <Arrow />
-        </a>
-      </div>
-    </aside>
-  )
+export function ok(body, event) {
+  return {
+    statusCode: 200,
+    headers: { ...(event ? corsFor(event) : CORS), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  };
+}
+export function err(code, msg, event) {
+  return {
+    statusCode: code,
+    headers: { ...(event ? corsFor(event) : CORS), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ error: msg }),
+  };
 }

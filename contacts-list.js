@@ -1,16 +1,41 @@
-[build]
-  command = "npm install && npm run build"
-  publish = ".next"
+import { notion, DB, getProp, ok, err, CORS } from './_notion.js';
+import { requireAuth } from './_auth.js';
 
-[build.environment]
-  NODE_VERSION = "20"
-  NEXT_TELEMETRY_DISABLED = "1"
+export const handler = async (event, context) => {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS };
+  const authErr = await requireAuth(event);
+  if (authErr) return authErr;
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+  try {
+    const pages = [];
+    let cursor;
+    do {
+      const res = await notion.databases.query({
+        database_id: DB.CRM,
+        start_cursor: cursor,
+        page_size: 100,
+        sorts: [{ property: 'Name', direction: 'ascending' }],
+      });
+      pages.push(...res.results);
+      cursor = res.has_more ? res.next_cursor : null;
+    } while (cursor);
 
-[dev]
-  command = "npm run dev"
-  port = 3000
-  targetPort = 3000
-  framework = "nextjs"
+    const contacts = pages.map(p => ({
+      id:        p.id,
+      name:      getProp(p, 'Name') || getProp(p, 'Full Name') || '(unnamed)',
+      company:   getProp(p, 'Company'),
+      role:      getProp(p, 'Role') || getProp(p, 'Title'),
+      email:     getProp(p, 'Email'),
+      phone:     getProp(p, 'Phone'),
+      website:   getProp(p, 'Website'),
+      status:    getProp(p, 'Status'),
+      type:      getProp(p, 'Select') || getProp(p, 'Type'),  // CRM "type" field is named "Select"
+      relatesTo: getProp(p, 'Relates To') || getProp(p, 'Related To') || [],
+      updatedAt: p.last_edited_time,
+    }));
+
+    return ok(contacts);
+  } catch (e) {
+    return err(500, e.message);
+  }
+};

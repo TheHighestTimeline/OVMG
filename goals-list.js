@@ -1,30 +1,32 @@
-{
-  "name": "onevibe-compute-marketplace",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@clerk/nextjs": "^5.7.6",
-    "airtable": "^0.12.2",
-    "clsx": "^2.1.1",
-    "next": "14.2.5",
-    "react": "^18",
-    "react-dom": "^18",
-    "resend": "^3.4.0",
-    "stripe": "^14.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "autoprefixer": "^10.0.1",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+import { notion, DB, getProp, ok, err, CORS } from './_notion.js';
+import { requireAuth } from './_auth.js';
+
+export const handler = async (event, context) => {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS };
+  const authErr = await requireAuth(event);
+  if (authErr) return authErr;
+
+  try {
+    const res = await notion.databases.query({
+      database_id: DB.GOALS,
+      page_size: 100,
+      sorts: [{ property: 'Quarter', direction: 'ascending' }],
+    });
+
+    const goals = res.results.map(p => ({
+      id:       p.id,
+      goal:     getProp(p, 'Goal') || getProp(p, 'Name') || getProp(p, 'Title') || '',
+      owner:    getProp(p, 'Owner'),
+      status:   getProp(p, 'Status'),
+      priority: getProp(p, 'Priority'),
+      quarter:  getProp(p, 'Quarter'),
+      progress: getProp(p, 'Progress') ?? 0,
+      notes:    getProp(p, 'Notes'),
+      category: getProp(p, 'Category') || getProp(p, 'Deal Category') || [],
+    }));
+
+    return ok(goals);
+  } catch (e) {
+    return err(500, e.message);
   }
-}
+};
