@@ -1,63 +1,15 @@
-import { Link } from "react-router-dom";
-import { useStore } from "../store";
-import { STAGES } from "../types";
-import { Badge, stageColor } from "../components/ui";
-import { fmtMoney } from "../lib/util";
+# SEED Initiative
 
-export default function Portfolio() {
-  const { projects } = useStore();
+**Sustainable Environmental + Equitable Development**
 
-  const totalPO = projects.reduce((s, p) => s + p.purchaseOrders.reduce((a, o) => a + o.amount, 0), 0);
-  const delivered = projects.filter((p) => p.stage === "Delivered").length;
-  const overdue = projects.filter((p) => p.stage !== "Delivered" && new Date(p.requestedDelivery) < new Date()).length;
-  const totalUnits = projects.reduce((s, p) => s + p.bom.reduce((a, b) => a + b.qty, 0), 0);
+The world's first community-first data center master plan. Carbon negative, infrasound monitored, closed-loop water, waste-heat food production, and net-negative festival playbook.
 
-  const byStage = STAGES.map((s) => ({ stage: s, count: projects.filter((p) => p.stage === s).length }));
-  const maxStage = Math.max(1, ...byStage.map((x) => x.count));
+**Live site:** https://ovmgseed.netlify.app
 
-  return (
-    <>
-      <div className="topbar"><div><h1>Portfolio Metrics</h1><span className="muted">Roll-up across all {projects.length} boxes</span></div></div>
-      <div className="content">
-        <div className="grid cols-4 mb">
-          <div className="tile"><div className="label">Active boxes</div><div className="value">{projects.length - delivered}</div><div className="sub">{delivered} delivered</div></div>
-          <div className="tile"><div className="label">Committed spend</div><div className="value" style={{ fontSize: 22 }}>{fmtMoney(totalPO)}</div><div className="sub">across all POs</div></div>
-          <div className="tile"><div className="label">Tracked units</div><div className="value">{totalUnits}</div><div className="sub">nut-and-bolt line items</div></div>
-          <div className="tile"><div className="label">Overdue boxes</div><div className="value" style={{ color: overdue ? "var(--red)" : undefined }}>{overdue}</div><div className="sub">past requested delivery</div></div>
-        </div>
+## Sites
+- Site 1: Kingsboro, NC — 900 MW campus
+- Site 2: Bennettsville, SC — 3 GW campus
 
-        <div className="grid cols-2">
-          <div className="panel">
-            <h3>Boxes by stage</h3>
-            {byStage.map((x) => (
-              <div key={x.stage} className="spread" style={{ padding: "6px 0" }}>
-                <span style={{ width: 110 }}><Badge color={stageColor(x.stage)}>{x.stage}</Badge></span>
-                <div className="pill-progress" style={{ flex: 1, margin: "0 10px" }}><div style={{ width: `${(x.count / maxStage) * 100}%` }} /></div>
-                <b style={{ width: 24, textAlign: "right" }}>{x.count}</b>
-              </div>
-            ))}
-          </div>
-
-          <div className="panel">
-            <h3>All boxes</h3>
-            <div className="table-wrap">
-              <table>
-                <thead><tr><th>ID</th><th>Name</th><th>Customer</th><th>Stage</th></tr></thead>
-                <tbody>
-                  {projects.map((p) => (
-                    <tr key={p.id}>
-                      <td><Link to={`/box/${p.id}`}>{p.id}</Link></td>
-                      <td>{p.name}</td>
-                      <td className="muted">{p.customer}</td>
-                      <td><Badge color={stageColor(p.stage)}>{p.stage}</Badge></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+## What's in this repo
+- `index.html` — full 11-tab interactive master plan (single-file, no build step needed)
+- `_redirects` — Netlify routing config

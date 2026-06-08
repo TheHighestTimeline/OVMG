@@ -1,0 +1,96 @@
+import { NextResponse } from 'next/server'
+import { LISTINGS } from '@/lib/inventory'
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json()
+    const { listing: listingId, name, company, email, units, notes } = body
+
+    const listing = LISTINGS.find(l => l.id === listingId)
+    if (!listing) {
+      return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
+    }
+
+    const numUnits   = Number(units) || 1
+    const hoursPerMo = 24 * 30
+    const hoursPerYr = 24 * 365
+    const monthlyEst = (numUnits * listing.price * hoursPerMo).toFixed(2)
+    const annualEst  = (numUnits * listing.price * hoursPerYr).toFixed(2)
+    const totalEst   = (numUnits * listing.price * hoursPerYr * 3).toFixed(2)
+
+    const loiText = `
+LETTER OF INTENT — COMPUTE CAPACITY RESERVATION
+OneVibe Compute Marketplace
+================================================
+
+Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+BUYER INFORMATION
+-----------------
+Name:    ${name}
+Company: ${company}
+Email:   ${email}
+
+CAPACITY RESERVATION
+--------------------
+Chip:      ${listing.chip}
+Site:      ${listing.site}
+Facility:  ${listing.power} ${listing.powerLabel}
+Rate:      $${listing.price.toFixed(2)} / ${listing.unit}-hr
+Contract:  Fixed-rate 3-year
+Units:     ${numUnits.toLocaleString()}
+
+ESTIMATED ECONOMICS
+-------------------
+Monthly:   $${Number(monthlyEst).toLocaleString()}
+Annual:    $${Number(annualEst).toLocaleString()}
+Total 3yr: $${Number(totalEst).toLocaleString()}
+
+NOTES
+-----
+${notes || 'None'}
+
+NEXT STEPS
+----------
+A OneVibe representative will contact you within 1 business day.
+This LOI is non-binding until countersigned by OneVibe Management Group.
+
+================================================
+OneVibe Management Group
+compute@onevibemg.com
+`
+
+    const RESEND_API_KEY = process.env.RESEND_API_KEY
+    if (RESEND_API_KEY) {
+      const { Resend } = await import('resend')
+      const resend = new Resend(RESEND_API_KEY)
+
+      await resend.emails.send({
+        from: 'OneVibe Compute <noreply@onevibemg.com>',
+        to: ['compute@onevibemg.com'],
+        subject: `[LOI] ${listing.status === 'LIVE' ? 'Reservation' : 'Pre-order'} — ${listing.chip} @ ${listing.site} — ${company}`,
+        text: loiText,
+      })
+
+      await resend.emails.send({
+        from: 'OneVibe Compute <compute@onevibemg.com>',
+        to: [email],
+        subject: `Your LOI — ${listing.chip} @ ${listing.site}`,
+        text: `Dear ${name},\n\nThank you for your interest in OneVibe compute capacity.\n\n${loiText}`,
+      })
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('\n=== LOI SUBMISSION ===\n', loiText)
+    }
+
+    return NextResponse.json({
+      success: true,
+      referenceId: `LOI-${Date.now().toString().slice(-6)}`,
+    })
+
+  } catch (err) {
+    console.error('LOI submission error:', err)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
+}
