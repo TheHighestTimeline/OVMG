@@ -1,8 +1,8 @@
 'use client'
 
-import { SignIn } from '@clerk/nextjs'
+import { SignUp } from '@clerk/nextjs'
 
-export default function SignInPage() {
+export default function SignUpPage() {
   return (
     <div className="auth-shell">
       <div className="auth-brand">
@@ -11,11 +11,11 @@ export default function SignInPage() {
         <span className="brand-product">Compute Marketplace</span>
       </div>
       <div className="auth-card">
-        <SignIn
+        <SignUp
           routing="path"
-          path="/sign-in"
-          signUpUrl="/sign-up"
-          afterSignInUrl="/"
+          path="/sign-up"
+          signInUrl="/sign-in"
+          afterSignUpUrl="/onboarding"
           appearance={{
             variables: {
               colorPrimary: 'oklch(0.78 0.14 155)',
@@ -36,7 +36,8 @@ export default function SignInPage() {
         />
       </div>
       <p className="auth-note">
-        Business email required. Personal email addresses are not accepted.
+        Business email required — <strong>@gmail, @yahoo, @hotmail</strong> and similar personal
+        domains are not accepted. You will be required to verify your email before submitting an LOI.
       </p>
     </div>
   )
