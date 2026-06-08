@@ -1,27 +1,41 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OneVibe Internal Hub</title>
-    <meta name="description" content="OneVibe Media Group internal dashboard" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◐</text></svg>" />
-    <!-- Netlify Identity Widget -->
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html, body, #root { height: 100%; }
-      body { font-family: 'Geist', system-ui, sans-serif; background: #fbf8f2; }
-      ::-webkit-scrollbar { width: 4px; height: 4px; }
-      ::-webkit-scrollbar-thumb { background: #ddd3bb; border-radius: 999px; }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+import { notion, DB, getProp, ok, err, CORS } from './_notion.js';
+import { requireAuth } from './_auth.js';
+
+export const handler = async (event, context) => {
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS };
+  const authErr = await requireAuth(event);
+  if (authErr) return authErr;
+
+  try {
+    const pages = [];
+    let cursor;
+    do {
+      const res = await notion.databases.query({
+        database_id: DB.TASKS,
+        start_cursor: cursor,
+        page_size: 100,
+        sorts: [{ property: 'Due Date', direction: 'ascending' }],
+      });
+      pages.push(...res.results);
+      cursor = res.has_more ? res.next_cursor : null;
+    } while (cursor);
+
+    const tasks = pages.map(p => ({
+      id:           p.id,
+      task:         getProp(p, 'Task') || getProp(p, 'Name') || getProp(p, 'Title') || '(untitled)',
+      status:       getProp(p, 'Status'),
+      priority:     getProp(p, 'Priority'),
+      owner:        getProp(p, 'Owner') || (Array.isArray(getProp(p, 'Assignee')) ? (getProp(p, 'Assignee') || []).join(', ') : null),
+      dueDate:      getProp(p, 'Due Date'),
+      dealCategory: getProp(p, 'Deal Category') || [],
+      companyNames: getProp(p, 'Company Names') || [],
+      taskType:     getProp(p, 'Task Type') || null,
+      relatedOpportunities: getProp(p, 'Related Opportunities') || [],
+      updatedAt:    p.last_edited_time,
+    }));
+
+    return ok(tasks);
+  } catch (e) {
+    return err(500, e.message);
+  }
+};
