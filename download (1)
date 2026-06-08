@@ -1,0 +1,16 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+scheduler.log
+
+# Node
+node_modules/
+astro-site/dist/
+astro-site/.astro/
+
+# OS
+.DS_Store
+Thumbs.db

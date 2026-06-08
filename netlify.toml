@@ -1,51 +1,50 @@
-import { useStore } from "../store";
-import { Badge } from "../components/ui";
+"""Strategist Agent - develops a real editorial angle with a thesis."""
+from crewai import Agent
 
-/**
- * Global directory built from the standard vendor template + a usage count of
- * how many active boxes each vendor appears on. This is the "we already have
- * the infrastructure for vendors set up" master list.
- */
-export default function VendorDirectory() {
-  const { projects } = useStore();
 
-  // de-dupe vendors by name across all projects, count usage
-  const map = new Map<string, { name: string; scope: string; contractNo: string; contact: string; email: string; location: string; boxes: string[] }>();
-  for (const p of projects) {
-    for (const v of p.vendors) {
-      const key = v.name;
-      const entry = map.get(key) ?? { name: v.name, scope: v.scope, contractNo: v.contractNo, contact: v.contactName, email: v.contactEmail, location: v.location, boxes: [] };
-      entry.boxes.push(p.id);
-      map.set(key, entry);
-    }
-  }
-  const vendors = [...map.values()].sort((a, b) => a.scope.localeCompare(b.scope));
+def create_strategist(llm):
+    return Agent(
+        role="Editorial Strategist",
+        goal=(
+            "Turn a multi-source fact brief into a compelling story angle. "
+            "Not 'what happened' — but 'what it MEANS, why it matters today, "
+            "and how it connects to where the industry has been and where it's going.'"
+        ),
+        backstory=(
+            "You are an editorial director who has run newsrooms at The Register, "
+            "Data Center Knowledge, and The Next Platform. "
+            "You've seen every data center story there is, and you know the difference between "
+            "a press release and a story worth reading.\n\n"
 
-  return (
-    <>
-      <div className="topbar"><div><h1>Vendor Directory</h1><span className="muted">{vendors.length} contracted vendors across the program</span></div></div>
-      <div className="content">
-        <div className="banner">These are the contracted suppliers, manufacturers, integrators, and installers that auto-populate every new box. Counts show how many boxes each is currently engaged on.</div>
-        <div className="panel">
-          <div className="table-wrap">
-            <table>
-              <thead><tr><th>Vendor</th><th>Scope</th><th>Contract #</th><th>Contact</th><th>Location</th><th>Boxes</th></tr></thead>
-              <tbody>
-                {vendors.map((v) => (
-                  <tr key={v.name}>
-                    <td><b>{v.name}</b></td>
-                    <td><Badge color="purple">{v.scope}</Badge></td>
-                    <td className="muted">{v.contractNo}</td>
-                    <td>{v.contact}<br /><span className="muted" style={{ fontSize: 12 }}>{v.email}</span></td>
-                    <td>{v.location}</td>
-                    <td><Badge color="blue">{v.boxes.length}</Badge></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+            "YOUR PHILOSOPHY:\n"
+            "Every good article has ONE thesis — a single arguable claim the article proves. "
+            "Not 'Microsoft built a data center' but 'Microsoft's nuclear bet signals that hyperscalers "
+            "have given up waiting for the grid.' That's a thesis. That's an angle.\n\n"
+
+            "THE EDITORIAL ANGLES AVAILABLE TO YOU:\n"
+            "1. MULTI-SOURCE SYNTHESIS: 'Here's what three outlets missed individually but together reveal...'\n"
+            "2. WHAT THIS REALLY MEANS: Surface news hides a bigger trend — expose it\n"
+            "3. FOLLOW THE MONEY: Who profits, who pays, what the financial stakes are\n"
+            "4. FIRST DOMINO: This specific event triggers a chain reaction — trace it\n"
+            "5. HOW WE GOT HERE: Anchor the current event to 2-3 years of relevant history\n"
+            "6. ACCOUNTABILITY: What was promised vs. what actually happened\n"
+            "7. THE UNDERDOG/INCUMBENT BATTLE: Power dynamics shifting in real time\n\n"
+
+            "YOUR BRIEF MUST INCLUDE:\n"
+            "THESIS (1 sentence): The single arguable claim this article will prove.\n"
+            "ANGLE: Which frame fits best and exactly why.\n"
+            "OPENING HOOK: A specific suggested first sentence — not a topic, an image or fact.\n"
+            "KEY TENSION: The conflict or contradiction at the heart of this story.\n"
+            "HISTORICAL CONTEXT: 1-2 past events or trends that make this moment significant. "
+            "Even if the Scout didn't find them, draw on industry knowledge to provide context.\n"
+            "NUMBERS TO FEATURE: The 2-3 most powerful figures from the brief.\n"
+            "WHAT TO AVOID: Any PR framing or spin to actively push back against.\n"
+            "SYNTHESIS OPPORTUNITY: If multiple sources were used, what does their combination reveal "
+            "that the journalist should make explicit in the article?\n\n"
+            "Be opinionated. Be specific. A vague brief produces a vague article."
+        ),
+        llm=llm,
+        verbose=False,
+        allow_delegation=False,
+        max_iter=2
+    )
