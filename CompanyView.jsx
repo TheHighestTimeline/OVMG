@@ -1,47 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
-import { C, SERIF, SANS, MONO, fmtR, notionUrl } from '../constants.js';
+import { C, SERIF, SANS, MONO, fmtR } from '../constants.js';
 import { Eyebrow, Btn, Tag, Inp, Sel, FR } from '../components/UI.jsx';
-import useIsMobile, { useDevice } from '../hooks/useIsMobile.js';
 import {
-  getOutreach, createOutreach, updateOutreach, deleteOutreach, getOutreachNotes, addOutreachNote,
+  getOutreach, createOutreach, updateOutreach, getOutreachNotes, addOutreachNote,
   getTeamMembers,
 } from '../api.js';
 
-// Default pipeline stages (includes "Additional Outreach" for phone-only leads)
-const DEFAULT_STAGES = [
+// Pipeline stages
+const STAGES = [
   'No Status', 'Assigned', 'Contacted',
   'Founder Outreach', 'Negotiations', 'Won', 'Lost', 'Archived',
-  'Additional Outreach',
 ];
 
-// Persist custom stage order/names in localStorage
-const LANES_KEY = 'ovmg.outreach.lanes';
-function loadLanes() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(LANES_KEY));
-    if (Array.isArray(stored) && stored.length > 0) return stored;
-  } catch {}
-  return DEFAULT_STAGES;
-}
-function saveLanes(lanes) {
-  try { localStorage.setItem(LANES_KEY, JSON.stringify(lanes)); } catch {}
-}
-
 const STAGE_STYLE = {
-  'No Status':          { hBg: C.ink7,     hFg: C.ink2,  border: C.ink5    },
-  'Assigned':           { hBg: C.blu,      hFg: '#fff',  border: C.blu     },
-  'Contacted':          { hBg: C.yel,      hFg: '#fff',  border: C.yel     },
-  'Founder Outreach':   { hBg: C.acc,      hFg: '#fff',  border: C.acc     },
-  'Negotiations':       { hBg: '#7a4f99',  hFg: '#fff',  border: '#7a4f99' },
-  'Won':                { hBg: C.grn,      hFg: '#fff',  border: C.grn     },
-  'Lost':               { hBg: C.red,      hFg: '#fff',  border: C.red     },
-  'Archived':           { hBg: C.ink5,     hFg: C.ink2,  border: C.ink5    },
-  'Additional Outreach':{ hBg: '#5a7a4f',  hFg: '#fff',  border: '#5a7a4f' },
+  'No Status':        { hBg: C.ink7,     hFg: C.ink2,  border: C.ink5    },
+  'Assigned':         { hBg: C.blu,      hFg: '#fff',  border: C.blu     },
+  'Contacted':        { hBg: C.yel,      hFg: '#fff',  border: C.yel     },
+  'Founder Outreach': { hBg: C.acc,      hFg: '#fff',  border: C.acc     },
+  'Negotiations':     { hBg: '#7a4f99',  hFg: '#fff',  border: '#7a4f99' },
+  'Won':              { hBg: C.grn,      hFg: '#fff',  border: C.grn     },
+  'Lost':             { hBg: C.red,      hFg: '#fff',  border: C.red     },
+  'Archived':         { hBg: C.ink5,     hFg: C.ink2,  border: C.ink5    },
 };
-// Fallback style for custom lanes not in STAGE_STYLE
-function getStageStyle(stage) {
-  return STAGE_STYLE[stage] || { hBg: C.ink5, hFg: C.ink2, border: C.ink5 };
-}
 
 const QUALITY_STYLE = {
   'Ultra Qualified': { bg: C.grnS, fg: C.grn },
@@ -66,7 +46,7 @@ function isMyLead(lead, user) {
 }
 
 // New Lead drawer
-function NewLeadDrawer({ user, teamNames, stages, onSave, onClose, showToast }) {
+function NewLeadDrawer({ user, teamNames, onSave, onClose, showToast }) {
   const myName = getMyName(user);
   const [form, setForm] = useState({
     name: '', contactName: '', businessType: '', cityState: '',
@@ -173,7 +153,7 @@ function NewLeadDrawer({ user, teamNames, stages, onSave, onClose, showToast }) 
         </FR>
         <FR label="Stage">
           <Sel value={form.status} onChange={e => set('status', e.target.value)}>
-            {(stages || DEFAULT_STAGES).map(s => <option key={s}>{s}</option>)}
+            {STAGES.map(s => <option key={s}>{s}</option>)}
           </Sel>
         </FR>
 
@@ -344,7 +324,7 @@ function NotesTimeline({ leadId, showToast }) {
 }
 
 // Lead detail drawer
-function LeadDrawer({ lead, user, teamNames, stages, onSave, onClose, onDelete, showToast }) {
+function LeadDrawer({ lead, user, teamNames, onSave, onClose, showToast }) {
   const [status,     setStatus]     = useState(lead.status     || 'No Status');
   const [assignedTo, setAssignedTo] = useState(lead.assignedTo || '');
   const [nextAction, setNextAction] = useState(lead.nextAction || '');
@@ -473,7 +453,7 @@ function LeadDrawer({ lead, user, teamNames, stages, onSave, onClose, onDelete, 
       }}>
         <FR label="Stage">
           <Sel value={status} onChange={e => setStatus(e.target.value)}>
-            {(stages || DEFAULT_STAGES).map(s => <option key={s}>{s}</option>)}
+            {STAGES.map(s => <option key={s}>{s}</option>)}
           </Sel>
         </FR>
 
@@ -547,20 +527,9 @@ function LeadDrawer({ lead, user, teamNames, stages, onSave, onClose, onDelete, 
         <NotesTimeline leadId={lead.id} showToast={showToast} />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          {onDelete && <Btn v="dan" onClick={() => onDelete(lead)} disabled={saving}>Delete</Btn>}
-          {lead.url && (
-            <a href={lead.url} target="_blank" rel="noopener noreferrer"
-              style={{ fontFamily: MONO, fontSize: 11, color: C.ink5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              ⊟ Edit in Notion ↗
-            </a>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Btn v="gho" onClick={onClose}>Cancel</Btn>
-          <Btn onClick={save} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</Btn>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <Btn v="gho" onClick={onClose}>Cancel</Btn>
+        <Btn onClick={save} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</Btn>
       </div>
     </div>
   );
@@ -578,7 +547,7 @@ function LeadCard({ lead, user, onClick, onDragStart }) {
       onDragStart={onDragStart}
       onClick={onClick}
       style={{
-        background: C.cr1,
+        background: '#fff',
         border: `1px solid ${unowned ? C.acc : C.cr2}`,
         borderRadius: 8, padding: '10px 12px',
         cursor: 'grab', userSelect: 'none',
@@ -623,160 +592,13 @@ function LeadCard({ lead, user, onClick, onDragStart }) {
   );
 }
 
-// Lane management modal
-function LaneManager({ lanes, onClose, onSave }) {
-  const [editing, setEditing] = useState(lanes.slice());
-  const [confirmDelete, setConfirmDelete] = useState(null); // index to delete
-  const [renameIdx, setRenameIdx]         = useState(null);
-  const [renameVal, setRenameVal]         = useState('');
-  const [newName, setNewName]             = useState('');
-
-  const move = (from, to) => {
-    if (to < 0 || to >= editing.length) return;
-    const next = editing.slice();
-    const [item] = next.splice(from, 1);
-    next.splice(to, 0, item);
-    setEditing(next);
-  };
-
-  const startRename = (i) => { setRenameIdx(i); setRenameVal(editing[i]); };
-  const commitRename = () => {
-    const v = renameVal.trim();
-    if (!v || (editing.includes(v) && editing[renameIdx] !== v)) return;
-    const next = editing.slice();
-    next[renameIdx] = v;
-    setEditing(next);
-    setRenameIdx(null);
-    setRenameVal('');
-  };
-
-  const addLane = () => {
-    const v = newName.trim();
-    if (!v || editing.includes(v)) return;
-    setEditing(prev => [...prev, v]);
-    setNewName('');
-  };
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(14,16,20,.45)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
-    }}>
-      <div style={{
-        background: C.bg, borderRadius: 12, padding: 24, width: 400, maxWidth: '90vw',
-        maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: 14,
-        boxShadow: '0 8px 32px rgba(0,0,0,.18)',
-      }}>
-        <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 500, color: C.ink9 }}>
-          Manage Swim Lanes
-        </div>
-
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {editing.map((lane, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '8px 10px', background: C.bg2, borderRadius: 7,
-              border: `1px solid ${C.cr3}`,
-            }}>
-              {renameIdx === i ? (
-                <input
-                  autoFocus
-                  value={renameVal}
-                  onChange={e => setRenameVal(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') { setRenameIdx(null); } }}
-                  style={{
-                    flex: 1, padding: '4px 8px', border: `1px solid ${C.acc}`, borderRadius: 5,
-                    fontFamily: SANS, fontSize: 13, color: C.ink9, background: C.bg, outline: 'none',
-                  }}
-                />
-              ) : (
-                <span style={{ flex: 1, fontFamily: SANS, fontSize: 13, color: C.ink8 }}>{lane}</span>
-              )}
-
-              <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                {renameIdx === i ? (
-                  <>
-                    <button onClick={commitRename} style={{ fontSize: 11, color: C.grn, background: 'none', border: 'none', cursor: 'pointer', fontFamily: MONO, padding: '2px 6px' }}>Save</button>
-                    <button onClick={() => setRenameIdx(null)} style={{ fontSize: 11, color: C.ink3, background: 'none', border: 'none', cursor: 'pointer', fontFamily: MONO, padding: '2px 6px' }}>Cancel</button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={() => startRename(i)} title="Rename"
-                      style={{ fontSize: 12, color: C.acc, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 5px' }}>✎</button>
-                    <button onClick={() => move(i, i - 1)} disabled={i === 0} title="Move up"
-                      style={{ fontSize: 12, color: C.ink5, background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', opacity: i === 0 ? 0.3 : 1, padding: '2px 5px' }}>↑</button>
-                    <button onClick={() => move(i, i + 1)} disabled={i === editing.length - 1} title="Move down"
-                      style={{ fontSize: 12, color: C.ink5, background: 'none', border: 'none', cursor: i === editing.length - 1 ? 'default' : 'pointer', opacity: i === editing.length - 1 ? 0.3 : 1, padding: '2px 5px' }}>↓</button>
-                    <button onClick={() => setConfirmDelete(i)} title="Delete lane"
-                      style={{ fontSize: 12, color: C.red, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 5px' }}>×</button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Add lane */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') addLane(); }}
-            placeholder="New lane name…"
-            style={{
-              flex: 1, padding: '8px 10px', border: `1px solid ${C.cr3}`, borderRadius: 7,
-              fontFamily: SANS, fontSize: 13, color: C.ink9, background: C.bg, outline: 'none',
-            }}
-          />
-          <Btn v="gho" onClick={addLane} disabled={!newName.trim() || editing.includes(newName.trim())}>
-            + Add
-          </Btn>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Btn v="gho" onClick={onClose}>Cancel</Btn>
-          <Btn onClick={() => { saveLanes(editing); onSave(editing); onClose(); }}>Save Lanes</Btn>
-        </div>
-      </div>
-
-      {/* Delete confirmation sub-modal */}
-      {confirmDelete !== null && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(14,16,20,.55)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300,
-        }}>
-          <div style={{
-            background: C.bg, borderRadius: 12, padding: 24, maxWidth: 340, width: '90%',
-            boxShadow: '0 8px 32px rgba(0,0,0,.22)',
-          }}>
-            <div style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 500, color: C.ink9, marginBottom: 8 }}>
-              Delete lane "{editing[confirmDelete]}"?
-            </div>
-            <div style={{ fontFamily: SANS, fontSize: 13, color: C.ink5, marginBottom: 20, lineHeight: 1.5 }}>
-              Cards in this lane will still exist in the database but will no longer appear in this lane. This cannot be undone.
-            </div>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <Btn v="gho" onClick={() => setConfirmDelete(null)}>Cancel</Btn>
-              <Btn v="dan" onClick={() => {
-                const next = editing.filter((_, j) => j !== confirmDelete);
-                setEditing(next);
-                setConfirmDelete(null);
-              }}>Delete Lane</Btn>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // Kanban column
-function StageColumn({ stage, leads, user, dragOverStage, onCardClick, onDragStart, onDragOver, onDrop, onDragLeave, isTablet }) {
-  const st     = getStageStyle(stage);
+function StageColumn({ stage, leads, user, dragOverStage, onCardClick, onDragStart, onDragOver, onDrop, onDragLeave }) {
+  const st     = STAGE_STYLE[stage] || STAGE_STYLE['No Status'];
   const isOver = dragOverStage === stage;
 
   return (
-    <div style={{ flex: isTablet ? '0 0 168px' : '0 0 220px', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ flex: '0 0 220px', display: 'flex', flexDirection: 'column' }}>
       <div style={{
         padding: '9px 12px', borderRadius: '8px 8px 0 0', background: st.hBg,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -837,92 +659,14 @@ function FilterPill({ label, active, onClick, accent }) {
   );
 }
 
-
-// Mobile board — one stage at a time selected from a tab strip
-function MobileBoard({ stages, byStage, user, onCardClick }) {
-  // Pick the first stage that has leads as initial, else No Status
-  const firstWithLeads = stages.find(s => (byStage[s] || []).length > 0) || stages[0];
-  const [activeStage, setActiveStage] = useState(firstWithLeads);
-  const leads = byStage[activeStage] || [];
-  const st = getStageStyle(activeStage);
-
-  return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-
-      {/* Horizontal stage tab strip */}
-      <div style={{
-        display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8,
-        marginBottom: 10, scrollbarWidth: 'thin',
-      }}>
-        {stages.map(s => {
-          const active = s === activeStage;
-          const cnt = (byStage[s] || []).length;
-          const sty = getStageStyle(s);
-          return (
-            <button
-              key={s}
-              onClick={() => setActiveStage(s)}
-              style={{
-                flex: '0 0 auto',
-                background: active ? sty.hBg : C.bg,
-                color: active ? sty.hFg : C.ink5,
-                border: `1px solid ${active ? sty.border : C.cr3}`,
-                borderRadius: 999, padding: '6px 12px',
-                fontFamily: MONO, fontSize: 11, fontWeight: 600,
-                letterSpacing: '.06em', textTransform: 'uppercase',
-                cursor: 'pointer', whiteSpace: 'nowrap',
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-              }}
-            >
-              {s}
-              <span style={{
-                background: active ? 'rgba(255,255,255,.22)' : C.cr2,
-                color: active ? sty.hFg : C.ink3,
-                fontSize: 10, padding: '1px 6px', borderRadius: 99,
-              }}>{cnt}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Active stage card list */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {leads.length === 0 ? (
-          <div style={{
-            padding: '40px 16px', textAlign: 'center',
-            color: C.ink3, fontFamily: MONO, fontSize: 11,
-            background: C.bg2, border: `1px dashed ${C.cr3}`, borderRadius: 10,
-          }}>
-            No leads in {activeStage}
-          </div>
-        ) : leads.map(l => (
-          <LeadCard
-            key={l.id}
-            lead={l}
-            user={user}
-            onClick={() => onCardClick(l)}
-            onDragStart={() => {}}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // Main view
 export default function Outreach({ user, showToast, openOv, closeOv }) {
-  const isMobile = useIsMobile();
-  const isTablet = useDevice() === 'tablet';
   const [leads,         setLeads]         = useState([]);
   const [teamNames,     setTeamNames]     = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [search,        setSearch]        = useState('');
   const [tfAssign,      setTfAssign]      = useState('All');
-  const [showMineOnly,  setShowMineOnly]  = useState(false);
   const [dragOverStage, setDragOverStage] = useState(null);
-  const [lanes,         setLanes]         = useState(() => loadLanes());
-  const [showLaneMgr,   setShowLaneMgr]   = useState(false);
-  const [notionDbId,    setNotionDbId]    = useState(null);
   const dragLead = useRef(null);
 
   const myName = getMyName(user);
@@ -931,10 +675,7 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
     setLoading(true);
     try {
       const [data, team] = await Promise.allSettled([getOutreach(), getTeamMembers()]);
-      // outreach-list returns { leads, databaseId }; tolerate the legacy array too.
-      const payload = data.status === 'fulfilled' ? data.value : [];
-      const leads = Array.isArray(payload) ? payload : (payload?.leads || []);
-      if (!Array.isArray(payload) && payload?.databaseId) setNotionDbId(payload.databaseId);
+      const leads = data.status === 'fulfilled' ? data.value : [];
       setLeads(leads);
 
       if (team.status === 'fulfilled') {
@@ -956,7 +697,6 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
   useEffect(() => { load(); }, []);
 
   const filtered = leads.filter(l => {
-    if (showMineOnly && !isMyLead(l, user))                                 return false;
     if (tfAssign === 'mine')            { if (!isMyLead(l, user))           return false; }
     else if (tfAssign === 'unassigned') { if (l.assignedTo)                 return false; }
     else if (tfAssign !== 'All')        { if (l.assignedTo !== tfAssign)    return false; }
@@ -969,11 +709,11 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
     return true;
   });
 
-  const byStage = Object.fromEntries(lanes.map(s => [s, []]));
+  const byStage = Object.fromEntries(STAGES.map(s => [s, []]));
   filtered.forEach(l => {
     const s = l.status || 'No Status';
-    if (byStage[s] !== undefined) byStage[s].push(l);
-    else if (byStage['No Status'] !== undefined) byStage['No Status'].push(l);
+    if (byStage[s]) byStage[s].push(l);
+    else byStage['No Status'].push(l);
   });
 
   const activeCount     = leads.filter(l => !['Won', 'Lost', 'Archived'].includes(l.status)).length;
@@ -1020,15 +760,8 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
           lead={lead}
           user={user}
           teamNames={teamNames}
-          stages={lanes}
           onSave={load}
           onClose={closeOv}
-          onDelete={(l) => {
-            if (!window.confirm(`Delete lead "${l.name}"? This archives it in Notion (recoverable for 30 days).`)) return;
-            deleteOutreach(l.id)
-              .then(() => { setLeads(prev => prev.filter(x => x.id !== l.id)); showToast('Lead deleted'); closeOv(); })
-              .catch(e => showToast('Delete failed: ' + e.message));
-          }}
           showToast={showToast}
         />
       ),
@@ -1044,7 +777,6 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
         <NewLeadDrawer
           user={user}
           teamNames={teamNames}
-          stages={lanes}
           onSave={load}
           onClose={closeOv}
           showToast={showToast}
@@ -1056,19 +788,11 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 
-      {showLaneMgr && (
-        <LaneManager
-          lanes={lanes}
-          onClose={() => setShowLaneMgr(false)}
-          onSave={(newLanes) => setLanes(newLanes)}
-        />
-      )}
-
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 12, flexShrink: 0 }}>
         <div>
           <Eyebrow>Sales</Eyebrow>
-          <h1 style={{ fontFamily: SERIF, fontWeight: 500, fontSize: isMobile ? 26 : 38, letterSpacing: '-.025em', margin: 0, color: C.ink9, lineHeight: 1 }}>
-            OVM Kanban
+          <h1 style={{ fontFamily: SERIF, fontWeight: 500, fontSize: 38, letterSpacing: '-.025em', margin: 0, color: C.ink9, lineHeight: 1 }}>
+            OVM Outreach
           </h1>
           <div style={{ display: 'flex', gap: 14, marginTop: 6, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: MONO, fontSize: 11, color: C.ink3 }}>
@@ -1090,31 +814,8 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: isMobile ? '100%' : 'auto', flexWrap: 'wrap' }}>
-          {/* Show only mine toggle */}
-          <button
-            onClick={() => setShowMineOnly(v => !v)}
-            style={{
-              padding: '7px 12px', borderRadius: 8, fontFamily: SANS, fontSize: 12, fontWeight: 500,
-              border: `1px solid ${showMineOnly ? C.grn : C.cr3}`,
-              background: showMineOnly ? C.grnS : C.bg,
-              color: showMineOnly ? C.grn : C.ink5,
-              cursor: 'pointer', transition: 'all .12s', whiteSpace: 'nowrap',
-              display: 'flex', alignItems: 'center', gap: 6,
-            }}
-          >
-            {showMineOnly ? '✓ Mine only' : 'Show only mine'}
-          </button>
-          <Inp value={search} onChange={e => setSearch(e.target.value)} placeholder="Search leads..." sx={{ width: isMobile ? '100%' : 200 }} />
-          <Btn v="gho" onClick={() => setShowLaneMgr(true)} sx={{ whiteSpace: 'nowrap' }}>⋮ Lanes</Btn>
-          {notionDbId && (
-            <a href={notionUrl(notionDbId)} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
-                fontFamily: SANS, fontSize: 12, fontWeight: 500, textDecoration: 'none',
-                border: `1px solid ${C.cr3}`, color: C.ink5, background: C.bg, whiteSpace: 'nowrap' }}>
-              ⊟ Edit in Notion ↗
-            </a>
-          )}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <Inp value={search} onChange={e => setSearch(e.target.value)} placeholder="Search leads..." sx={{ width: 200 }} />
           <Btn onClick={openNewLead}>+ New Lead</Btn>
         </div>
       </div>
@@ -1160,17 +861,10 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
 
       {loading ? (
         <div style={{ padding: 32, textAlign: 'center', color: C.ink3 }}>Loading leads...</div>
-      ) : isMobile ? (
-        <MobileBoard
-          stages={lanes}
-          byStage={byStage}
-          user={user}
-          onCardClick={openLead}
-        />
       ) : (
         <div style={{ overflowX: 'auto', flex: 1, paddingBottom: 16 }}>
           <div style={{ display: 'flex', gap: 10, minWidth: 'max-content', alignItems: 'flex-start' }}>
-            {lanes.map(stage => (
+            {STAGES.map(stage => (
               <StageColumn
                 key={stage}
                 stage={stage}
@@ -1182,7 +876,6 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
                 onDragOver={e => handleDragOver(e, stage)}
                 onDrop={e => handleDrop(e, stage)}
                 onDragLeave={handleDragLeave}
-                isTablet={isTablet}
               />
             ))}
           </div>
