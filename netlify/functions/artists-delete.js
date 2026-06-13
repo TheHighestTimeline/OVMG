@@ -1,9 +1,8 @@
-// artists-delete — archives a client/artist page in the Notion roster DB.
-// Notion has no hard delete via the API; archiving moves it to the workspace
-// trash (recoverable for 30 days), which is the right behavior for a gated
-// "delete this client" action in the dashboard.
-import { notion, ok, err, CORS } from './_notion.js';
+import { airtableDelete } from './_airtable.js';
+import { ok, err, CORS } from './_notion.js';
 import { requireAuth } from './_auth.js';
+
+const TABLE = () => process.env.AIRTABLE_TABLE_CLIENTS || 'OVM Clients DB';
 
 export const handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
@@ -13,7 +12,7 @@ export const handler = async (event) => {
   if (!body.id) return err(400, 'id required');
 
   try {
-    await notion.pages.update({ page_id: body.id, archived: true });
+    await airtableDelete(TABLE(), body.id);
     return ok({ id: body.id, deleted: true });
   } catch (e) {
     console.error('[social:artists-delete]', e.message);

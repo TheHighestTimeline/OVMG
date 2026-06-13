@@ -11,7 +11,7 @@ export const handler = async (event) => {
 
   try {
     const records = await airtableList(TABLE(), {
-      sort: [{ field: 'Name', direction: 'asc' }],
+      sort: [{ field: 'Full Name', direction: 'asc' }],
     });
 
     const contacts = records.map(r => ({

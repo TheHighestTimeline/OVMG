@@ -1,5 +1,8 @@
-import { notion, richText, select, multiSelect, ok, err, CORS } from './_notion.js';
+import { airtableUpdate } from './_airtable.js';
+import { ok, err, CORS } from './_notion.js';
 import { requireAuth } from './_auth.js';
+
+const TABLE = () => process.env.AIRTABLE_TABLE_CLIENTS || 'OVM Clients DB';
 
 export const handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
@@ -8,18 +11,20 @@ export const handler = async (event) => {
   let body; try { body = JSON.parse(event.body || '{}'); } catch { return err(400, 'Invalid JSON'); }
   if (!body.id) return err(400, 'id required');
 
-  const props = {};
-  if (body.bio !== undefined)             props['Bio']             = richText(body.bio);
-  if (body.brandVoice !== undefined)      props['Brand Voice']     = richText(body.brandVoice);
-  if (body.targetAudience !== undefined)  props['Target Audience'] = richText(body.targetAudience);
-  if (body.dos !== undefined)             props["Do's"]            = multiSelect(body.dos);
-  if (body.donts !== undefined)           props["Don'ts"]          = multiSelect(body.donts);
-  if (body.brandColors !== undefined)     props['Brand Colors']    = richText((body.brandColors || []).join(', '));
-  if (body.genre !== undefined)           props['Genre']           = select(body.genre);
-  if (body.driveFolderId !== undefined)   props['Drive Folder ID'] = richText(body.driveFolderId);
+  const fields = {};
+  if (body.bio             !== undefined) fields['Bio']             = body.bio;
+  if (body.brandVoice      !== undefined) fields['Brand Voice']     = body.brandVoice;
+  if (body.targetAudience  !== undefined) fields['Target Audience'] = body.targetAudience;
+  if (body.dos             !== undefined) fields["Do's"]            = body.dos;
+  if (body.donts           !== undefined) fields["Don'ts"]          = body.donts;
+  if (body.brandColors     !== undefined) fields['Brand Colors']    = (body.brandColors || []).join(', ');
+  if (body.genre           !== undefined) fields['Genre']           = body.genre;
+  if (body.driveFolderId   !== undefined) fields['Drive Folder ID'] = body.driveFolderId;
+  if (body.color           !== undefined) fields['Color']           = body.color;
+  if (body.initials        !== undefined) fields['Initials']        = body.initials;
 
   try {
-    await notion.pages.update({ page_id: body.id, properties: props });
+    await airtableUpdate(TABLE(), body.id, fields);
     return ok({ id: body.id });
   } catch (e) {
     console.error('[social:artists-update]', e.message);

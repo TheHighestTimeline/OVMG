@@ -190,13 +190,13 @@ export function toAirtableFields(appObject, mapping) {
 // If your Airtable columns differ, update these maps — the functions will follow.
 
 export const CONTACTS_MAP = {
-  name:      'Name',
-  role:      'Role',
-  email:     'Email',
-  phone:     'Phone',
-  status:    'Status',
-  type:      'Type',
-  relatesTo: 'Relates To',
+  name:     'Full Name',
+  role:     'Title',
+  email:    'Email',
+  phone:    'Phone',
+  linkedin: 'LinkedIn',
+  type:     'Type',
+  notes:    'Notes',
   // updatedAt comes from Last Modified Time (auto-populated by fromAirtableRecord)
 };
 

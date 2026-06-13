@@ -22,6 +22,9 @@ export const handler = async (event) => {
     // Return same shape as Notion version so UI doesn't break
     return ok({ leads, databaseId: null });
   } catch (e) {
+    if (e.message?.includes('403') || e.message?.includes('404') || e.message?.includes('not found')) {
+      return ok({ leads: [], databaseId: null });
+    }
     console.error('outreach-list error:', e);
     return err(500, e.message);
   }

@@ -22,6 +22,9 @@ export const handler = async (event) => {
 
     return ok(items);
   } catch (e) {
+    if (e.message?.includes('403') || e.message?.includes('404') || e.message?.includes('not found')) {
+      return ok([]);
+    }
     return err(500, e.message);
   }
 };
