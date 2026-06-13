@@ -336,4 +336,3 @@ export default function CompanyView({ slug, subTab, ctx = {} }) {
     </div>
   );
 }
-                                                            
