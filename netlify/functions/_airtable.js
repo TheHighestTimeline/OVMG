@@ -94,12 +94,37 @@ export async function airtableList(tableNameOrId, options = {}) {
   return options.maxRecords ? records.slice(0, options.maxRecords) : records;
 }
 
+// ── Parse "Unknown field name: X" out of an Airtable 422 message ─────────────
+function parseUnknownField(errorMsg) {
+  // Airtable formats: Unknown field name: "X"  or  Unknown field name: 'X'
+  const m = String(errorMsg).match(/Unknown field name[:\s]*["']([^"']+)["']/i);
+  return m ? m[1] : null;
+}
+
 // ── Create a single record ────────────────────────────────────────────────────
 // typecast: true allows Airtable to coerce string values into select options.
+// If the table is missing a field in `fields`, Airtable returns 422
+// "Unknown field name: X".  We catch that, strip the offending field, and retry
+// automatically so saves never hard-fail due to schema mismatches.
 export async function airtableCreate(tableNameOrId, fields) {
   const baseId = getBaseId();
-  const table = resolveTable(tableNameOrId);
-  return airtableRequest('POST', `/${baseId}/${table}`, { fields, typecast: true });
+  const table  = resolveTable(tableNameOrId);
+  let f = { ...fields };
+
+  for (let attempt = 0; attempt < 20; attempt++) {
+    try {
+      return await airtableRequest('POST', `/${baseId}/${table}`, { fields: f, typecast: true });
+    } catch (e) {
+      const bad = parseUnknownField(e.message);
+      if (bad && bad in f) {
+        console.warn(`[airtable] create — stripping unknown field "${bad}" and retrying`);
+        delete f[bad];
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw new Error('airtableCreate: too many unknown fields stripped — aborting');
 }
 
 // ── Create multiple records in one call (up to 10 per Airtable limit) ─────────
@@ -121,13 +146,29 @@ export async function airtableCreateBatch(tableNameOrId, fieldsArray) {
 }
 
 // ── Update a record (PATCH — only updates provided fields) ────────────────────
+// Same unknown-field retry strategy as airtableCreate.
 export async function airtableUpdate(tableNameOrId, recordId, fields) {
   const baseId = getBaseId();
-  const table = resolveTable(tableNameOrId);
-  return airtableRequest('PATCH', `/${baseId}/${table}/${recordId}`, {
-    fields,
-    typecast: true,
-  });
+  const table  = resolveTable(tableNameOrId);
+  let f = { ...fields };
+
+  for (let attempt = 0; attempt < 20; attempt++) {
+    try {
+      return await airtableRequest('PATCH', `/${baseId}/${table}/${recordId}`, {
+        fields: f,
+        typecast: true,
+      });
+    } catch (e) {
+      const bad = parseUnknownField(e.message);
+      if (bad && bad in f) {
+        console.warn(`[airtable] update — stripping unknown field "${bad}" and retrying`);
+        delete f[bad];
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw new Error('airtableUpdate: too many unknown fields stripped — aborting');
 }
 
 // ── Get a single record ───────────────────────────────────────────────────────
@@ -142,6 +183,20 @@ export async function airtableDelete(tableNameOrId, recordId) {
   const baseId = getBaseId();
   const table = resolveTable(tableNameOrId);
   return airtableRequest('DELETE', `/${baseId}/${table}/${recordId}`);
+}
+
+// ── Fetch base metadata (table names, IDs, field names) ──────────────────────
+// Used by airtable-schema.js to return the full schema to the frontend so it
+// can build "Open in Airtable" record links and verify field names.
+export async function airtableMeta() {
+  const token  = getToken();
+  const baseId = getBaseId();
+  const res = await fetch(`https://api.airtable.com/v0/meta/bases/${baseId}/tables`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`Airtable meta error (${res.status}): ${JSON.stringify(data?.error || data)}`);
+  return data.tables || [];
 }
 
 // ── Find records matching a field value ───────────────────────────────────────
@@ -196,6 +251,7 @@ export const CONTACTS_MAP = {
   phone:    'Phone',
   linkedin: 'LinkedIn',
   type:     'Type',
+  status:   'Status',       // Active / Benched / Unknown — 422-stripped if not in table
   notes:    'Notes',
   // updatedAt comes from Last Modified Time (auto-populated by fromAirtableRecord)
 };

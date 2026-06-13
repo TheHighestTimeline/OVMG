@@ -1,6 +1,29 @@
 // All API calls to Netlify Functions.
 const BASE = '/.netlify/functions';
 
+// ── Airtable schema ─────────────────────────────────────────────────────────
+// Returns { tables: [{ id, name, fields: [{id, name, type}] }] }
+// Used to build "Open in Airtable" deep-links and validate field mappings.
+let _schemaCache = null;
+export async function getAirtableSchema() {
+  if (_schemaCache) return _schemaCache;
+  try {
+    const data = await req('airtable-schema');
+    _schemaCache = data;
+    return data;
+  } catch {
+    return { tables: [] };
+  }
+}
+// Given a table name (e.g. 'Opportunities') and a record ID, returns the
+// direct Airtable record URL. Falls back to the base if the table isn't found.
+const BASE_ID = 'appgZ4EvfGEI4owb7';
+export function airtableRecordUrl(tableId, recordId) {
+  if (!tableId) return `https://airtable.com/${BASE_ID}`;
+  if (!recordId) return `https://airtable.com/${BASE_ID}/${tableId}`;
+  return `https://airtable.com/${BASE_ID}/${tableId}/${recordId}`;
+}
+
 // Clerk exposes window.Clerk after ClerkProvider mounts.
 async function getToken() {
   try {

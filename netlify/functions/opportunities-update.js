@@ -12,7 +12,7 @@ export const handler = async (event) => {
   let body;
   try { body = JSON.parse(event.body || '{}'); } catch { return err(400, 'Invalid JSON'); }
 
-  const { id, name, stage, dealCategory, priority, dealValue, notes, nextAction, nextActionDate, mainPoc, mainEmail, mainPhone, kanbanType } = body;
+  const { id, name, stage, dealCategory, priority, dealValue, notes, driveLink, nextAction, nextActionDate, mainPoc, mainEmail, mainPhone, kanbanType } = body;
   if (!id) return err(400, 'id is required');
 
   try {
@@ -30,6 +30,7 @@ export const handler = async (event) => {
     if (mainPhone      !== undefined) update.mainPhone      = mainPhone;
 
     const fields = toAirtableFields(update, OPPORTUNITIES_MAP);
+    if (driveLink  !== undefined) fields['Drive Link']  = driveLink || null;
     if (kanbanType !== undefined) {
       fields['Work Type'] = kanbanType === 'internal' ? 'Internal' : kanbanType === 'external' ? 'External' : null;
     }

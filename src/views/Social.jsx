@@ -1515,7 +1515,7 @@ function Onboarding({ onClose, onCreate }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
           <div><Lbl>Client Name</Lbl><input value={data.name} onChange={e => setData({ ...data, name: e.target.value })} placeholder="e.g. Acme Coffee Co" style={inputStyle} /></div>
           <div><Lbl>Genre / Category</Lbl><input value={data.genre} onChange={e => setData({ ...data, genre: e.target.value })} placeholder="e.g. Food & Beverage" style={inputStyle} /></div>
-          <p style={{ fontSize: 11, color: T.ink3, margin: 0, lineHeight: 1.5 }}>We'll auto-create a Notion page and Google Drive folder for <strong style={{ color: T.fg }}>{data.name || 'this client'}</strong> after setup.</p>
+          <p style={{ fontSize: 11, color: T.ink3, margin: 0, lineHeight: 1.5 }}>We'll create a Google Drive folder and client record for <strong style={{ color: T.fg }}>{data.name || 'this client'}</strong> after setup.</p>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
             <button onClick={() => setStep(2)} disabled={!data.name.trim()} style={{ ...btn('primary'), opacity: data.name.trim() ? 1 : 0.4 }}>Next →</button>
           </div>
@@ -1554,7 +1554,7 @@ function Onboarding({ onClose, onCreate }) {
       {step === 4 && (
         <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 9 }}>
           {[
-            ['📋', `Notion page created for ${data.name}`],
+            ['📋', `Client record created for ${data.name}`],
             ['📁', 'Google Drive folder linked'],
             ['📷', data.ig || data.tiktok ? '36 scraped posts imported' : 'Scraping skipped'],
             ['🗄️', 'Client record saved'],

@@ -443,7 +443,6 @@ function LeadDrawer({ lead, user, teamNames, onSave, onClose, showToast }) {
           <LinkRow label="Instagram" href={lead.instagram}    />
           <LinkRow label="LinkedIn"  href={lead.linkedin}     />
           <LinkRow label="Airtable"  href={lead.airtableLink} />
-          <LinkRow label="Notion"    href={lead.url}          />
         </div>
       </div>
 

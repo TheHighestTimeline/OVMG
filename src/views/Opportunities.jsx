@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { C, SERIF, SANS, MONO, stBg, stFg, prBg, prFg, fmtC, fmtD, notionUrl } from '../constants.js';
+import { C, SERIF, SANS, MONO, stBg, stFg, prBg, prFg, fmtC, fmtD } from '../constants.js';
 import { Eyebrow, Tag, Spinner, Btn, Inp, Sel, FR, useConfirm } from '../components/UI.jsx';
 import { getOpportunities, createOpportunity, updateOpportunity, deleteOpportunity,
-         getTasks, createTask, updateTask, deleteTask } from '../api.js';
+         getTasks, createTask, updateTask, deleteTask,
+         getAirtableSchema, airtableRecordUrl } from '../api.js';
 import { dealCategoryMatchesSlug, SLUG_TO_DEAL_CATEGORY } from '../constants/roles.js';
 import useIsMobile from '../hooks/useIsMobile.js';
 
@@ -141,7 +142,7 @@ function LinkedTasks({ oppId, companyCat, showToast }) {
 }
 
 // ── Opportunity form (create / edit) ─────────────────────────────────────────
-function OppForm({ initial, categories, onSave, onDelete, onClose, saving, showToast }) {
+function OppForm({ initial, categories, onSave, onDelete, onClose, saving, showToast, tableId }) {
   const [f, setF] = useState({
     name: '',
     stage: 'Intake',
@@ -232,9 +233,9 @@ function OppForm({ initial, categories, onSave, onDelete, onClose, saving, showT
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {isEdit && onDelete && <Btn v="dan" onClick={onDelete} disabled={saving}>Delete</Btn>}
           {isEdit && (
-            <a href={notionUrl(initial.id)} target="_blank" rel="noopener noreferrer"
+            <a href={airtableRecordUrl(tableId, initial.id)} target="_blank" rel="noopener noreferrer"
               style={{ fontFamily: MONO, fontSize: 11, color: C.ink5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              ⊟ Edit in Notion ↗
+              ⊞ Airtable ↗
             </a>
           )}
         </div>
@@ -343,6 +344,15 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
   const allCats = ['OVMG','ONEVIBEMEDIA','ONEVIBEDATA','ONEVIBEFEST','AMPLIFYARTISTS','AMPLIFYBRANDS',
     'CARBON SPONGE','DATA CENTERS','ONEVIBEGROUP','ONEVIBEPRODUCTIONS','SOLR ESS','LIFE','OTHER'];
 
+  // Airtable table ID — fetched once so we can build "Open in Airtable" links.
+  const [oppTableId, setOppTableId] = useState(null);
+  useEffect(() => {
+    getAirtableSchema().then(({ tables }) => {
+      const t = tables.find(t => t.name === 'Opportunities');
+      if (t) setOppTableId(t.id);
+    }).catch(() => {});
+  }, []);
+
   const load = useCallback(() => {
     setLoading(true);
     getOpportunities()
@@ -390,7 +400,15 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
 
   const byStage = useMemo(() => {
     const m = Object.fromEntries(OPP_STAGES.map(s => [s, []]));
-    scoped.forEach(o => { (m[o.stage] || (m[o.stage] = [])).push(o); });
+    scoped.forEach(o => {
+      // If the stage from Airtable exactly matches a known column, use it.
+      // Otherwise fall back: non-empty unknown stage → 'Other/Holds',
+      // null/undefined → 'Intake' so nothing is silently lost.
+      const s = OPP_STAGES.includes(o.stage)
+        ? o.stage
+        : (o.stage ? 'Other/Holds' : 'Intake');
+      m[s].push(o);
+    });
     return m;
   }, [scoped]);
 
@@ -405,16 +423,9 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
     const defaultCat = companyCats[0] || '';
     const handleSave = async (data) => {
       setSaving(true);
-      // Encode driveLink into the Notes field with a prefix so we can round-trip
-      // it without adding a new Notion property. Format: "[drive]: <url>\n<rest>"
+      // Airtable has a dedicated 'Drive Link' field — no need to encode into Notes.
       const { driveLink, kanbanType, ...rest } = data;
-      // internal/external goes to the real Notion "Work Type" field (kanbanType
-      // in the payload); only driveLink still rides along in Notes.
-      const notesWithMeta = [
-        driveLink ? `[drive]: ${driveLink}` : null,
-        rest.notes || '',
-      ].filter(Boolean).join('\n');
-      const payload = { ...rest, notes: notesWithMeta, kanbanType: kanbanType || '' };
+      const payload = { ...rest, driveLink: driveLink || '', kanbanType: kanbanType || '' };
       try {
         if (isEdit) {
           await updateOpportunity(initial.id, payload);
@@ -455,6 +466,7 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
         onClose={() => closeOv?.()}
         saving={saving}
         showToast={showToast}
+        tableId={oppTableId}
       />,
     });
   };

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { C, SERIF, SANS, MONO, fmtR, notionUrl } from '../constants.js';
+import { C, SERIF, SANS, MONO, fmtR } from '../constants.js';
 import { Eyebrow, Btn, Tag, Inp, Sel, FR } from '../components/UI.jsx';
 import useIsMobile, { useDevice } from '../hooks/useIsMobile.js';
 import {
   getOutreach, createOutreach, updateOutreach, deleteOutreach, getOutreachNotes, addOutreachNote,
-  getTeamMembers,
+  getTeamMembers, getAirtableSchema, airtableRecordUrl,
 } from '../api.js';
 
 // Default pipeline stages (includes "Additional Outreach" for phone-only leads)
@@ -344,7 +344,7 @@ function NotesTimeline({ leadId, showToast }) {
 }
 
 // Lead detail drawer
-function LeadDrawer({ lead, user, teamNames, stages, onSave, onClose, onDelete, showToast }) {
+function LeadDrawer({ lead, user, teamNames, stages, onSave, onClose, onDelete, showToast, tableId }) {
   const [status,     setStatus]     = useState(lead.status     || 'No Status');
   const [assignedTo, setAssignedTo] = useState(lead.assignedTo || '');
   const [nextAction, setNextAction] = useState(lead.nextAction || '');
@@ -463,7 +463,6 @@ function LeadDrawer({ lead, user, teamNames, stages, onSave, onClose, onDelete, 
           <LinkRow label="Instagram" href={lead.instagram}    />
           <LinkRow label="LinkedIn"  href={lead.linkedin}     />
           <LinkRow label="Airtable"  href={lead.airtableLink} />
-          <LinkRow label="Notion"    href={lead.url}          />
         </div>
       </div>
 
@@ -550,12 +549,10 @@ function LeadDrawer({ lead, user, teamNames, stages, onSave, onClose, onDelete, 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           {onDelete && <Btn v="dan" onClick={() => onDelete(lead)} disabled={saving}>Delete</Btn>}
-          {lead.url && (
-            <a href={lead.url} target="_blank" rel="noopener noreferrer"
-              style={{ fontFamily: MONO, fontSize: 11, color: C.ink5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              ⊟ Edit in Notion ↗
-            </a>
-          )}
+          <a href={airtableRecordUrl(tableId, lead.id)} target="_blank" rel="noopener noreferrer"
+            style={{ fontFamily: MONO, fontSize: 11, color: C.ink5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            ⊞ Airtable ↗
+          </a>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <Btn v="gho" onClick={onClose}>Cancel</Btn>
@@ -922,10 +919,18 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
   const [dragOverStage, setDragOverStage] = useState(null);
   const [lanes,         setLanes]         = useState(() => loadLanes());
   const [showLaneMgr,   setShowLaneMgr]   = useState(false);
-  const [notionDbId,    setNotionDbId]    = useState(null);
+  const [outreachTableId, setOutreachTableId] = useState(null);
   const dragLead = useRef(null);
 
   const myName = getMyName(user);
+
+  // Fetch Airtable table ID once so we can deep-link to records
+  useEffect(() => {
+    getAirtableSchema().then(({ tables }) => {
+      const t = tables.find(t => t.name === 'Outreach' || t.name === 'CRM Outreach');
+      if (t) setOutreachTableId(t.id);
+    }).catch(() => {});
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -934,7 +939,6 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
       // outreach-list returns { leads, databaseId }; tolerate the legacy array too.
       const payload = data.status === 'fulfilled' ? data.value : [];
       const leads = Array.isArray(payload) ? payload : (payload?.leads || []);
-      if (!Array.isArray(payload) && payload?.databaseId) setNotionDbId(payload.databaseId);
       setLeads(leads);
 
       if (team.status === 'fulfilled') {
@@ -1024,12 +1028,13 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
           onSave={load}
           onClose={closeOv}
           onDelete={(l) => {
-            if (!window.confirm(`Delete lead "${l.name}"? This archives it in Notion (recoverable for 30 days).`)) return;
+            if (!window.confirm(`Delete lead "${l.name}"? This cannot be undone.`)) return;
             deleteOutreach(l.id)
               .then(() => { setLeads(prev => prev.filter(x => x.id !== l.id)); showToast('Lead deleted'); closeOv(); })
               .catch(e => showToast('Delete failed: ' + e.message));
           }}
           showToast={showToast}
+          tableId={outreachTableId}
         />
       ),
     });
@@ -1107,14 +1112,12 @@ export default function Outreach({ user, showToast, openOv, closeOv }) {
           </button>
           <Inp value={search} onChange={e => setSearch(e.target.value)} placeholder="Search leads..." sx={{ width: isMobile ? '100%' : 200 }} />
           <Btn v="gho" onClick={() => setShowLaneMgr(true)} sx={{ whiteSpace: 'nowrap' }}>⋮ Lanes</Btn>
-          {notionDbId && (
-            <a href={notionUrl(notionDbId)} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
-                fontFamily: SANS, fontSize: 12, fontWeight: 500, textDecoration: 'none',
-                border: `1px solid ${C.cr3}`, color: C.ink5, background: C.bg, whiteSpace: 'nowrap' }}>
-              ⊟ Edit in Notion ↗
-            </a>
-          )}
+          <a href={airtableRecordUrl(outreachTableId, null)} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
+              fontFamily: SANS, fontSize: 12, fontWeight: 500, textDecoration: 'none',
+              border: `1px solid ${C.cr3}`, color: C.ink5, background: C.bg, whiteSpace: 'nowrap' }}>
+            ⊞ Open Airtable ↗
+          </a>
           <Btn onClick={openNewLead}>+ New Lead</Btn>
         </div>
       </div>

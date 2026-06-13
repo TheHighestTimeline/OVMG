@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { C, SERIF, SANS, MONO, DB, RELATES, stBg, stFg, fmtR, notionUrl } from '../constants.js';
 import { Tag, Eyebrow, Btn, Inp, Sel, FR, VoiceMic } from '../components/UI.jsx';
-import { getContacts, createContact, updateContact, getNotes, createNote, updateNote, deleteNote, parseVoice } from '../api.js';
+import { getContacts, createContact, updateContact, getNotes, createNote, updateNote, deleteNote, parseVoice,
+         getAirtableSchema, airtableRecordUrl } from '../api.js';
 import useIsMobile from '../hooks/useIsMobile.js';
 import { companyNameMatchesSlug } from '../constants/roles.js';
 
@@ -38,6 +39,15 @@ export default function Contacts({ user, showToast, openOv, closeOv, companyFilt
   [showToast]);
 
   useEffect(() => { loadContacts(); }, [loadContacts]);
+
+  // Airtable table ID for "Open in Airtable" deep-links
+  const [contactTableId, setContactTableId] = useState(null);
+  useEffect(() => {
+    getAirtableSchema().then(({ tables }) => {
+      const t = tables.find(t => t.name === 'CRM Contacts' || t.name === 'Contacts');
+      if (t) setContactTableId(t.id);
+    }).catch(() => {});
+  }, []);
 
   const loadNotes = cid =>
     getNotes(cid)
@@ -233,12 +243,9 @@ export default function Contacts({ user, showToast, openOv, closeOv, companyFilt
         {/* Contact info + edit button */}
         <div style={{ padding: 14, background: C.bg2, border: `1px solid ${C.cr2}`, borderRadius: 10, marginBottom: 16 }}>
           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap', marginBottom: 12 }}>
-            <a
-              href={notionUrl(localC.id)} target="_blank" rel="noopener noreferrer"
-              title="Edit this contact in Notion"
-              style={{ background: 'none', border: `1px solid ${C.cr3}`, borderRadius: 6, padding: '4px 10px', fontFamily: MONO, fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: C.ink3, cursor: 'pointer', textDecoration: 'none' }}
-            >
-              ⊟ Notion ↗
+            <a href={airtableRecordUrl(contactTableId, localC.id)} target="_blank" rel="noopener noreferrer"
+              style={{ background: 'none', border: `1px solid ${C.cr3}`, borderRadius: 6, padding: '4px 10px', fontFamily: MONO, fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: C.ink3, cursor: 'pointer', textDecoration: 'none' }}>
+              ⊞ Airtable ↗
             </a>
             <button
               onClick={() => setLogOpen(v => !v)}
@@ -335,7 +342,7 @@ export default function Contacts({ user, showToast, openOv, closeOv, companyFilt
                 <p style={{ fontSize: 13, color: C.ink7, margin: '0 0 10px', lineHeight: 1.5 }}>{voiceResult.body}</p>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                   <Btn v="gho" onClick={() => setVoiceResult(null)}>Re-record</Btn>
-                  <Btn onClick={saveVoiceNote}>Save to Notion</Btn>
+                  <Btn onClick={saveVoiceNote}>Save note</Btn>
                 </div>
               </div>
             )}
@@ -423,7 +430,7 @@ export default function Contacts({ user, showToast, openOv, closeOv, companyFilt
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ padding: '10px 14px', background: C.bg2, borderRadius: 8, marginBottom: 4 }}>
           <div style={{ fontFamily: SERIF, fontWeight: 500, fontSize: 16 }}>{c.name}</div>
-          <div style={{ fontSize: 12, color: C.ink3 }}>Editing contact info — name is set in Notion</div>
+          <div style={{ fontSize: 12, color: C.ink3 }}>Editing contact info</div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: (typeof window !== 'undefined' && window.innerWidth < 768) ? '1fr' : '1fr 1fr', gap: 10 }}>
           <FR label="Email"><Inp value={f.email} onChange={fld('email')} placeholder="email@domain.com" /></FR>
@@ -442,8 +449,8 @@ export default function Contacts({ user, showToast, openOv, closeOv, companyFilt
             </Sel>
           </FR>
         </div>
-        {/* Companies — ties this contact to one or more companies (Notion
-            "Relates To"). This is what surfaces the contact on a company page. */}
+        {/* Companies — ties this contact to one or more deal categories.
+            This is what surfaces the contact on a company page. */}
         <FR label="Companies (deal category)">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {COMPANIES.filter(x => x !== 'All').map(x => {
@@ -561,13 +568,6 @@ export default function Contacts({ user, showToast, openOv, closeOv, companyFilt
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Inp value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…" sx={{ width: 180 }} />
-          <a href={notionUrl(DB.CRM)} target="_blank" rel="noopener noreferrer"
-            title="Open the Contacts (CRM) database in Notion"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
-              fontFamily: SANS, fontSize: 12, fontWeight: 500, textDecoration: 'none',
-              border: `1px solid ${C.cr3}`, color: C.ink5, background: C.bg, whiteSpace: 'nowrap' }}>
-            ⊟ Edit in Notion ↗
-          </a>
           <Btn v="gho" onClick={() => openOv({ kind: 'modal', title: 'Voice add contact', body: <VoiceAddForm onSave={addContact} /> })}>◉ Voice</Btn>
           <Btn onClick={() => openOv({ kind: 'modal', title: 'New contact', body: <CAddForm onSave={addContact} prefill={companyFilter ? { relatesTo: [SLUG_TO_COMPANY_NAME[companyFilter] || companyFilter] } : {}} /> })}>+ New</Btn>
         </div>

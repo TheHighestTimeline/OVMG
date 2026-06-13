@@ -498,7 +498,7 @@ export default function MyDay({ user, showToast }) {
       {phase === 'done' && (
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ fontSize: 48, marginBottom: 14 }}>✓</div>
-          <p style={{ fontFamily: SERIF, fontSize: 20, color: C.grn, marginBottom: 20 }}>All done! Items applied to Notion.</p>
+          <p style={{ fontFamily: SERIF, fontSize: 20, color: C.grn, marginBottom: 20 }}>All done! Items saved.</p>
           <Btn onClick={resetToIdle}>Record another update</Btn>
         </div>
       )}

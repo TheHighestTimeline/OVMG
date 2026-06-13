@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { C, SERIF, SANS, MONO, DB, STATUSES, prBg, prFg, stFg, dUntil, fmtD, fmtR, notionUrl } from '../constants.js';
+import { C, SERIF, SANS, MONO, DB, STATUSES, prBg, prFg, stFg, dUntil, fmtD, fmtR } from '../constants.js';
 import { Tag, Eyebrow, Btn, Inp, Sel, FR, VoiceMic, PBar, useConfirm } from '../components/UI.jsx';
-import { getTasks, createTask, updateTask, deleteTask, getTaskNotes, parseVoice, uploadFile, getOpportunities } from '../api.js';
+import { getTasks, createTask, updateTask, deleteTask, getTaskNotes, parseVoice, uploadFile, getOpportunities,
+         getAirtableSchema, airtableRecordUrl } from '../api.js';
 import useIsMobile from '../hooks/useIsMobile.js';
 import { dealCategoryMatchesSlug, SLUG_TO_DEAL_CATEGORY } from '../constants/roles.js';
 
@@ -152,6 +153,15 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
   [showToast]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Airtable table ID for "Open in Airtable" deep-links
+  const [taskTableId, setTaskTableId] = useState(null);
+  useEffect(() => {
+    getAirtableSchema().then(({ tables }) => {
+      const t = tables.find(t => t.name === 'Master Action Board' || t.name === 'Tasks');
+      if (t) setTaskTableId(t.id);
+    }).catch(() => {});
+  }, []);
 
   // Opportunities power the internal/external view: a task inherits its work type
   // from its related Opportunity's "Work Type" (Internal/External). Best-effort —
@@ -486,8 +496,8 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
               <FR label="Related opportunity">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {relOpps.map(o => (
-                    <a key={o.id} href={notionUrl(o.id)} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none',
+                    <span key={o.id}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
                         padding: '4px 10px', borderRadius: 999, background: C.bg2, border: `1px solid ${C.cr3}`,
                         fontFamily: MONO, fontSize: 11, color: C.ink7 }}>
                       {o.name}
@@ -496,7 +506,7 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
                           {o.kanbanType}
                         </Tag>
                       )}
-                    </a>
+                    </span>
                   ))}
                 </div>
               </FR>
@@ -509,9 +519,9 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
             <Btn v="dan" onClick={handleDelete} disabled={deleting}>
               {deleting ? 'Deleting…' : 'Delete task'}
             </Btn>
-            <a href={notionUrl(initialTask.id)} target="_blank" rel="noopener noreferrer"
+            <a href={airtableRecordUrl(taskTableId, initialTask.id)} target="_blank" rel="noopener noreferrer"
               style={{ fontFamily: MONO, fontSize: 11, color: C.ink5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-              ⊟ Edit in Notion ↗
+              ⊞ Airtable ↗
             </a>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -641,7 +651,7 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
                   {voiceResult.newStatus && <Tag bg={C.bluS} fg={C.blu}>Status: {voiceResult.newStatus}</Tag>}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
                     <Btn v="gho" onClick={() => setVoiceResult(null)}>Re-record</Btn>
-                    <Btn onClick={applyVoiceUpdate}>Save to Notion</Btn>
+                    <Btn onClick={applyVoiceUpdate}>Apply update</Btn>
                   </div>
                 </div>
               )}
@@ -855,18 +865,28 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
     const dueBg = due === null ? C.grS : due < 0 ? C.redS : due <= 2 ? C.yelS : C.grS;
     const dueFg = due === null ? C.ink5 : due < 0 ? C.red  : due <= 2 ? C.yel  : C.ink5;
     const [tpB, tpF] = TYPE_PILL[t.taskType] || ['grS', 'ink5'];
+    // Track whether an actual drag occurred so clicks aren't swallowed by the
+    // browser's drag-detection (even a 1-pixel mouse move triggers dragstart).
+    const didDrag = useRef(false);
+    const taskName = t.task || '';
+
+    const handleDragStart = e => { didDrag.current = true; onDragStart?.(e); };
+    const handleDragEnd   = e => { setTimeout(() => { didDrag.current = false; }, 0); onDragEnd?.(e); };
 
     return (
       <div
         draggable={draggable}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        onClick={() => openOv({
-          kind: 'drawer',
-          title: t.task.length > 40 ? t.task.slice(0, 40) + '…' : t.task,
-          sub: (t.owner || 'Unassigned') + (t.dueDate ? ` · due ${fmtD(t.dueDate)}` : ''),
-          body: <TEdit task={t} />,
-        })}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onClick={() => {
+          if (didDrag.current) return;
+          openOv({
+            kind: 'drawer',
+            title: taskName.length > 40 ? taskName.slice(0, 40) + '…' : taskName || 'Untitled',
+            sub: (t.owner || 'Unassigned') + (t.dueDate ? ` · due ${fmtD(t.dueDate)}` : ''),
+            body: <TEdit task={t} />,
+          });
+        }}
         style={{ background: C.bg, border: `1px solid ${C.cr2}`, borderRadius: 6, padding: '10px 13px', cursor: draggable ? 'grab' : 'pointer', transition: 'transform .15s ease' }}
         onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
         onMouseLeave={e => e.currentTarget.style.transform = ''}
@@ -1008,13 +1028,6 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
               ◉ new tasks tag → {activeCompanyCategory}
             </span>
           )}
-          <a href={notionUrl(DB.TASKS)} target="_blank" rel="noopener noreferrer"
-            title="Open the Tasks database in Notion"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
-              fontFamily: SANS, fontSize: 12, fontWeight: 500, textDecoration: 'none',
-              border: `1px solid ${C.cr3}`, color: C.ink5, background: C.bg, whiteSpace: 'nowrap' }}>
-            ⊟ Edit in Notion ↗
-          </a>
           <Btn v="gho" onClick={() => openOv({ kind: 'modal', title: 'Voice create task', body: <VoiceTaskForm /> })}>◉ Voice</Btn>
           {companyFilter && (
             <Btn v="gho" onClick={() => openOv({ kind: 'modal', title: 'Add section', body: <AddSectionForm /> })}>+ Section</Btn>
