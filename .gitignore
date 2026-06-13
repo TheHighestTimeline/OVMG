@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+SEED-repo/
+OVM-website/
+social-dashboard-repo/
+.env.local
+.netlify/
+*.log
+.DS_Store
+Thumbs.db
+# Local tooling / scratch / working docs (not part of the app)
+.claude/
+_tooltest.txt
+Grazel_Negotiation_Brief.pdf
+Mandate_Analysis_Grazel_OneVibe.docx
+OneVibe_Hero_Video_Build_Sheet.md
