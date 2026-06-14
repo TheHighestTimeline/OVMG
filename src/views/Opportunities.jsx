@@ -15,24 +15,26 @@ import useIsMobile from '../hooks/useIsMobile.js';
 // Notion is the single source of truth; creates/edits/deletes write there.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Matches the Airtable "Opportunities" Stage single-select options exactly.
 const OPP_STAGES = [
-  'Intake', 'Discovery Calls', 'Preparing Deals', 'Planning',
-  'Sent Deals/Negotiation', 'Signed', 'Other/Holds',
+  'Lead', 'Qualified', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost',
 ];
 
 const STAGE_STYLE = {
-  'Intake':                { hBg: C.ink5,  hFg: '#fff', border: C.ink5  },
-  'Discovery Calls':       { hBg: C.blu,   hFg: '#fff', border: C.blu   },
-  'Preparing Deals':       { hBg: C.yel,   hFg: '#fff', border: C.yel   },
-  'Planning':              { hBg: '#7c3d8f', hFg: '#fff', border: '#7c3d8f' },
-  'Sent Deals/Negotiation':{ hBg: C.acc,   hFg: '#fff', border: C.acc   },
-  'Signed':                { hBg: C.grn,   hFg: '#fff', border: C.grn   },
-  'Other/Holds':           { hBg: C.ink3,  hFg: '#fff', border: C.ink3  },
+  'Lead':        { hBg: C.ink5,  hFg: '#fff', border: C.ink5  },
+  'Qualified':   { hBg: C.blu,   hFg: '#fff', border: C.blu   },
+  'Proposal':    { hBg: C.yel,   hFg: '#fff', border: C.yel   },
+  'Negotiation': { hBg: C.acc,   hFg: '#fff', border: C.acc   },
+  'Closed Won':  { hBg: C.grn,   hFg: '#fff', border: C.grn   },
+  'Closed Lost': { hBg: C.ink3,  hFg: '#fff', border: C.ink3  },
 };
 
 const OPP_PRIORITIES = ['', 'High Priority', 'Medium Priority', 'Low Priority'];
 
-const TASK_CYCLE = ['Not started', 'In progress', 'Done'];
+// Matches the Airtable "Entity" single-select options (drives company tabs).
+const ENTITIES = ['OVMG', 'OVM', 'OVTV', 'OVF', 'Amplify', 'Carbon Sponge', 'OVD', 'OVV'];
+
+const TASK_CYCLE = ['Not Started', 'In Progress', 'Done'];
 
 // ── Linked tasks (Kanban card → Notion Tasks) ────────────────────────────────
 // Tasks tied to this opportunity via the Notion "Related Opportunities" relation.
@@ -58,7 +60,7 @@ function LinkedTasks({ oppId, companyCat, showToast }) {
 
   const reload = useCallback(() => {
     getTasks()
-      .then(all => setTasks((all || []).filter(t => (t.relatedOpportunities || []).includes(oppId))))
+      .then(all => setTasks((all || []).filter(t => (t.opportunityIds || []).includes(oppId))))
       .catch(() => setTasks([]));
   }, [oppId]);
   useEffect(() => { if (oppId) reload(); }, [oppId, reload]);
@@ -68,9 +70,9 @@ function LinkedTasks({ oppId, companyCat, showToast }) {
     setBusy(true);
     try {
       await createTask({
-        task: title.trim(), status: 'Not started',
-        relatedOpportunity: oppId,
-        dealCategory: companyCat ? [companyCat] : [],
+        task: title.trim(), status: 'Not Started',
+        opportunityIds: [oppId],
+        entity: companyCat || undefined,
       });
       setTitle(''); setAdding(false); showToast?.('Task added ✓'); reload();
     } catch (e) { showToast?.('Failed: ' + e.message); }
@@ -79,7 +81,7 @@ function LinkedTasks({ oppId, companyCat, showToast }) {
 
   const advance = async (t) => {
     const i = TASK_CYCLE.indexOf(t.status);
-    const next = TASK_CYCLE[(i + 1) % TASK_CYCLE.length] || 'Not started';
+    const next = TASK_CYCLE[(i + 1) % TASK_CYCLE.length] || 'Not Started';
     setTasks(prev => prev.map(x => x.id === t.id ? { ...x, status: next } : x));
     try { await updateTask(t.id, { status: next }); } catch (e) { showToast?.('Failed: ' + e.message); reload(); }
   };
@@ -118,7 +120,7 @@ function LinkedTasks({ oppId, companyCat, showToast }) {
             <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: C.bg2, border: `1px solid ${C.cr2}`, borderRadius: 6 }}>
               <button onClick={() => advance(t)} title="Advance status"
                 style={{ background: stBg(t.status), color: stFg(t.status), border: 'none', borderRadius: 999, padding: '2px 9px', fontFamily: MONO, fontSize: 9, letterSpacing: '.04em', textTransform: 'uppercase', cursor: 'pointer', flexShrink: 0 }}>
-                {t.status || 'Not started'}
+                {t.status || 'Not Started'}
               </button>
               {editId === t.id ? (
                 <>
@@ -145,22 +147,18 @@ function LinkedTasks({ oppId, companyCat, showToast }) {
 function OppForm({ initial, categories, onSave, onDelete, onClose, saving, showToast, tableId }) {
   const [f, setF] = useState({
     name: '',
-    stage: 'Intake',
-    priority: '',
+    stage: 'Lead',
     notes: '',
-    nextAction: '',
-    nextActionDate: '',
-    mainPoc: '',
-    mainEmail: '',
-    mainPhone: '',
+    closeDate: '',
+    entity: '',
     kanbanType: '',   // '' | 'internal' | 'external'
     ...initial,
     dealValue: initial?.dealValue != null ? String(initial.dealValue) : '',
-    driveLink: initial?.driveLink || '',
-    // MUST be after ...initial — otherwise the spread overwrites this with the
-    // raw Deal Category ARRAY, which then gets double-wrapped on save
-    // ([["OVMG"]]) and Notion rejects the multi_select. Always a scalar string.
-    dealCategory: (Array.isArray(initial?.dealCategory) ? initial.dealCategory[0] : initial?.dealCategory) || categories?.[0] || '',
+    closeDate: initial?.closeDate || '',
+    // Entity is a scalar string; if it arrived as the dealCategory array, take first.
+    entity: initial?.entity || (Array.isArray(initial?.dealCategory) ? initial.dealCategory[0] : initial?.dealCategory) || '',
+    // Derive the Internal/External toggle from the saved opportunity if present.
+    kanbanType: initial?.kanbanType || '',
   });
   const fld = k => e => setF(p => ({ ...p, [k]: e.target.value }));
   const isEdit = !!initial?.id;
@@ -176,31 +174,18 @@ function OppForm({ initial, categories, onSave, onDelete, onClose, saving, showT
             {OPP_STAGES.map(s => <option key={s}>{s}</option>)}
           </select>
         </FR>
-        <FR label="Priority">
-          <select value={f.priority} onChange={fld('priority')} style={inp}>
+        <FR label="Entity / Company">
+          <select value={f.entity} onChange={fld('entity')} style={inp}>
             <option value="">— None</option>
-            {OPP_PRIORITIES.filter(Boolean).map(p => <option key={p}>{p}</option>)}
+            {ENTITIES.map(c => <option key={c}>{c}</option>)}
           </select>
         </FR>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <FR label="Deal Category / Company">
-          <select value={f.dealCategory} onChange={fld('dealCategory')} style={inp}>
-            <option value="">— None</option>
-            {(categories || []).map(c => <option key={c}>{c}</option>)}
-          </select>
-        </FR>
         <FR label="Deal Value ($)">
           <Inp type="number" value={f.dealValue} onChange={fld('dealValue')} placeholder="0" />
         </FR>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <FR label="Main POC"><Inp value={f.mainPoc} onChange={fld('mainPoc')} placeholder="Name" /></FR>
-        <FR label="Email"><Inp type="email" value={f.mainEmail} onChange={fld('mainEmail')} placeholder="email@…" /></FR>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <FR label="Phone"><Inp value={f.mainPhone} onChange={fld('mainPhone')} placeholder="+1…" /></FR>
-        <FR label="Next Action Date"><Inp type="date" value={f.nextActionDate} onChange={fld('nextActionDate')} /></FR>
+        <FR label="Close Date"><Inp type="date" value={f.closeDate} onChange={fld('closeDate')} /></FR>
       </div>
       <FR label="Type">
         <div style={{ display: 'flex', gap: 6 }}>
@@ -217,17 +202,13 @@ function OppForm({ initial, categories, onSave, onDelete, onClose, saving, showT
           })}
         </div>
       </FR>
-      <FR label="Next Action"><Inp value={f.nextAction} onChange={fld('nextAction')} placeholder="What to do next" /></FR>
-      <FR label="Drive Folder URL">
-        <Inp value={f.driveLink} onChange={fld('driveLink')} placeholder="https://drive.google.com/drive/folders/…" />
-      </FR>
       <FR label="Notes">
         <textarea value={f.notes} onChange={fld('notes')} rows={3} placeholder="Key context…"
           style={{ ...inp, resize: 'vertical', lineHeight: 1.5 }} />
       </FR>
 
       {/* Linked tasks live on saved opportunities (need an id to attach to). */}
-      {isEdit && <LinkedTasks oppId={initial.id} companyCat={f.dealCategory} showToast={showToast} />}
+      {isEdit && <LinkedTasks oppId={initial.id} companyCat={f.entity} showToast={showToast} />}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 6, flexWrap: 'wrap', gap: 8 }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -404,9 +385,7 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
       // If the stage from Airtable exactly matches a known column, use it.
       // Otherwise fall back: non-empty unknown stage → 'Other/Holds',
       // null/undefined → 'Intake' so nothing is silently lost.
-      const s = OPP_STAGES.includes(o.stage)
-        ? o.stage
-        : (o.stage ? 'Other/Holds' : 'Intake');
+      const s = OPP_STAGES.includes(o.stage) ? o.stage : 'Lead';
       m[s].push(o);
     });
     return m;
@@ -459,7 +438,7 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
       title: isEdit ? initial.name : 'New Opportunity',
       sub: isEdit ? (initial.stage || '') : '',
       body: <OppForm
-        initial={isEdit ? initial : { dealCategory: defaultCat, stage: 'Intake' }}
+        initial={isEdit ? initial : { entity: defaultCat, stage: 'Lead' }}
         categories={allCats}
         onSave={handleSave}
         onDelete={isEdit ? handleDelete : null}
@@ -623,10 +602,30 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
                         <div style={{ marginTop: 2 }}>{o.nextAction}{o.nextActionDate ? ` · ${fmtD(o.nextActionDate)}` : ''}</div>
                       </div>
                     )}
-                    {o.notes && <div style={{ fontSize: 13, color: C.ink7, lineHeight: 1.6, marginBottom: o.taskIds?.length ? 10 : 0 }}>{o.notes}</div>}
-                    {(o.taskIds || []).length > 0 && (
-                      <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: C.ink3 }}>
-                        {o.taskIds.length} task{o.taskIds.length !== 1 ? 's' : ''} linked — open Tasks tab to see them
+                    {o.notes && <div style={{ fontSize: 13, color: C.ink7, lineHeight: 1.6, marginBottom: (o.projectNames?.length || o.tasks?.length) ? 10 : 0 }}>{o.notes}</div>}
+                    {(o.projectNames || []).length > 0 && (
+                      <div style={{ marginBottom: o.tasks?.length ? 10 : 0 }}>
+                        <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: C.ink3 }}>Projects</span>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                          {o.projectNames.map((pn, i) => (
+                            <span key={i} style={{ fontFamily: MONO, fontSize: 10, color: C.ink7, background: C.bg, border: `1px solid ${C.cr2}`, borderRadius: 999, padding: '2px 8px' }}>{pn}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {(o.tasks || []).length > 0 && (
+                      <div>
+                        <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.1em', textTransform: 'uppercase', color: C.ink3 }}>
+                          {o.tasks.length} task{o.tasks.length !== 1 ? 's' : ''} via project{(o.projectNames?.length || 0) !== 1 ? 's' : ''}
+                        </span>
+                        <div style={{ marginTop: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          {o.tasks.map(t => (
+                            <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: C.ink7 }}>
+                              <span style={{ fontFamily: MONO, fontSize: 9, color: C.ink3 }}>{t.status || '—'}</span>
+                              <span>{t.name || 'Untitled'}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

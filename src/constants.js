@@ -91,13 +91,13 @@ export const DB = {
 };
 
 // ── Task statuses ────────────────────────────────────────────────────────────
-// MUST match the Notion "Opportunity Tasks (Master)" Status select options
-// exactly (case included) or status writes silently fail. Order = column order
-// shown on the Tasks board.
+// MUST match the Airtable "Master Action Board" Status single-select options
+// EXACTLY (case included) — and the Projects "Status" field uses the same set —
+// or status writes create duplicate options. Order = column order on the board.
 export const STATUSES = [
   'Submitted',
-  'Not started',
-  'In progress',
+  'Not Started',
+  'In Progress',
   'Needs Attention',
   'Waiting On Response',
   'On Hold',

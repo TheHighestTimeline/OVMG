@@ -256,34 +256,36 @@ export const CONTACTS_MAP = {
   // updatedAt comes from Last Modified Time (auto-populated by fromAirtableRecord)
 };
 
+// Live base: "Master Action Board"
+//   Action Name (primary) · Status · Priority · Due Date · Description
+//   Assigned To     -> linked records to CRM Contacts (array of recordIds)
+//   Related Project -> linked records to Projects      (array of recordIds)
+// NOTE: 'Assigned To' and 'Related Project' are LINKED fields, so they return
+// record IDs. tasks-list.js resolves these IDs to display names.
 export const TASKS_MAP = {
-  task:                 'Task Name',
-  status:               'Status',
-  priority:             'Priority',
-  owner:                'Owner',
-  dueDate:              'Due Date',
-  dealCategory:         'Company / Entity',
-  taskType:             'Task Type',
-  relatedOpportunities: 'Project / Opportunity',
-  notes:                'Notes',
+  task:            'Action Name',
+  status:          'Status',
+  priority:        'Priority',
+  dueDate:         'Due Date',
+  notes:           'Description',
+  entity:          'Entity',          // singleSelect -> drives company tabs
+  type:            'Type',            // singleSelect Internal/External
+  owner:           'Assigned To',     // linked -> Contacts (recordIds)
+  relatedProjects: 'Related Project', // linked -> Projects  (recordIds)
 };
 
+// Live base: "Opportunities"
+//   Opportunity Name (primary) · Stage · Deal Value · Close Date · Notes
+//   Probability (%) · Associated Contact (link) · Projects (link) · Companies (link)
 export const OPPORTUNITIES_MAP = {
-  name:           'Opportunity Name',
-  stage:          'Stage',
-  status:         'Client Status',
-  priority:       'Priority',
-  dealValue:      'Deal Value',
-  notes:          'Notes',
-  nextAction:     'Next Action',
-  nextActionDate: 'Follow-Up Date',
-  closeDate:      'Close Date',
-  mainPoc:        'Main POC',
-  mainEmail:      'Main Email',
-  mainPhone:      'Main Phone',
-  dealCategory:   'Deal Category',
-  blocked:        'Blocked',
-  blockedReason:  'Blocked Reason',
+  name:        'Opportunity Name',
+  stage:       'Stage',
+  dealValue:   'Deal Value',
+  closeDate:   'Close Date',
+  probability: 'Probability (%)',
+  notes:       'Notes',
+  entity:      'Entity',   // singleSelect -> drives company tabs
+  type:        'Type',     // singleSelect Internal/External
 };
 
 export const OUTREACH_MAP = {

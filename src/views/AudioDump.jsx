@@ -201,7 +201,7 @@ function ReviewModal({ log, onClose, showToast, onRefresh }) {
           await updateTask(item.taskId, { status: e('newStatus') || item.newStatus, updateNote: e('note') || item.note });
           n++;
         } else if (item._type === 'newTask') {
-          await createTask({ task: e('task') || item.task || item.taskTitle || 'Untitled', owner: e('owner') || item.owner || '', priority: e('priority') || item.priority || 'Medium', status: e('newStatus') || 'Not started', dueDate: e('dueDate') || item.dueDate || '' });
+          await createTask({ task: e('task') || item.task || item.taskTitle || 'Untitled', owner: e('owner') || item.owner || '', priority: e('priority') || item.priority || 'Medium', status: e('newStatus') || 'Not Started', dueDate: e('dueDate') || item.dueDate || '' });
           n++;
         } else if (item._type === 'newContact') {
           await createContact({ name: e('name') || item.name || item.contactName || '', company: e('company') || item.company || '', notes: e('note') || item.note || '' });

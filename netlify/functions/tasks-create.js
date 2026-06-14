@@ -11,27 +11,31 @@ export const handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { task, status, priority, owner, dueDate, dealCategory, taskType, relatedOpportunity } = body;
+    const { task, status, priority, owner, dueDate, entity, type,
+            relatedProjectIds, opportunityIds, clientIds } = body;
     if (!task) return err(400, 'task is required');
 
-    const dealCategoryArr   = Array.isArray(dealCategory) ? dealCategory : [dealCategory].filter(Boolean);
-    const relatedOppArr     = relatedOpportunity ? [relatedOpportunity] : [];
-
+    // Only scalar columns are written here. 'Assigned To' and 'Related Project'
+    // are LINKED fields in the live base — they accept arrays of record IDs, not
+    // free-text names, so we only set 'Related Project' when caller passes IDs.
     const obj = {
       task,
-      status:               status   || 'Not started',
-      owner:                owner    || '',
-      dealCategory:         dealCategoryArr,
-      relatedOpportunities: relatedOppArr,
+      status: status || 'Not Started',
     };
     if (priority) obj.priority = priority;
     if (dueDate)  obj.dueDate  = dueDate;
-    if (taskType) obj.taskType = taskType;
+    if (entity)   obj.entity   = entity;
+    if (type)     obj.type     = type;
 
     const fields = toAirtableFields(obj, TASKS_MAP);
+    // Linked-record fields take arrays of Airtable record IDs.
+    if (Array.isArray(relatedProjectIds) && relatedProjectIds.length) fields['Related Project'] = relatedProjectIds;
+    if (Array.isArray(opportunityIds)    && opportunityIds.length)    fields['Opportunity']     = opportunityIds;
+    if (Array.isArray(clientIds)         && clientIds.length)         fields['Client']          = clientIds;
+
     const record = await airtableCreate(TABLE(), fields);
 
-    return ok({ id: record.id, task, status, priority, owner, dueDate, taskType: taskType || null, dealCategory: dealCategoryArr });
+    return ok({ id: record.id, task, status, priority, owner: owner || '', dueDate });
   } catch (e) {
     return err(500, e.message);
   }

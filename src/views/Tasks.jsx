@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { C, SERIF, SANS, MONO, DB, STATUSES, prBg, prFg, stFg, dUntil, fmtD, fmtR } from '../constants.js';
 import { Tag, Eyebrow, Btn, Inp, Sel, FR, VoiceMic, PBar, useConfirm } from '../components/UI.jsx';
 import { getTasks, createTask, updateTask, deleteTask, getTaskNotes, parseVoice, uploadFile, getOpportunities,
-         getAirtableSchema, airtableRecordUrl } from '../api.js';
+         getProjects, getClients, getAirtableSchema, airtableRecordUrl } from '../api.js';
 import useIsMobile from '../hooks/useIsMobile.js';
 import { dealCategoryMatchesSlug, SLUG_TO_DEAL_CATEGORY } from '../constants/roles.js';
 
@@ -102,6 +102,8 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
   const isMobile = useIsMobile();
   const [tasks,     setTasks]     = useState([]);
   const [opps,      setOpps]      = useState([]);
+  const [projects,  setProjects]  = useState([]);
+  const [clients,   setClients]   = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [tfAs,      setTfAs]      = useState(initialFilter?.assignee || 'All');
   const [tfPr,      setTfPr]      = useState('All');
@@ -167,8 +169,12 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
   // from its related Opportunity's "Work Type" (Internal/External). Best-effort —
   // if this fails the TYPE toggle simply stays hidden.
   useEffect(() => { getOpportunities().then(setOpps).catch(() => {}); }, []);
+  useEffect(() => { getProjects().then(setProjects).catch(() => {}); }, []);
+  useEffect(() => { getClients().then(setClients).catch(() => {}); }, []);
   const oppMap = (() => { const m = {}; opps.forEach(o => { m[o.id] = o; }); return m; })();
   const taskWorkType = (t) => {
+    // Prefer the task's own Internal/External tag; fall back to its opportunity.
+    if (t.type) return String(t.type).toLowerCase();
     for (const id of (t.relatedOpportunities || [])) {
       const o = oppMap[id];
       if (o && o.kanbanType) return o.kanbanType;
@@ -264,6 +270,10 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
     })();
     const [co,        setCo]        = useState(initialCoSlug);
     const [sec,       setSec]       = useState(initialTask.taskType || '');
+    const [oppId,     setOppId]     = useState((initialTask.opportunityIds || [])[0] || '');
+    const [projId,    setProjId]    = useState((initialTask.relatedProjectIds || [])[0] || '');
+    const [cliId,     setCliId]     = useState((initialTask.clientIds || [])[0] || '');
+    const [wtype,     setWtype]     = useState(initialTask.type || '');
     const [saving,    setSaving]    = useState(false);
     const sectionOpts = [...STANDARD_SECTIONS, ...extraLanes.filter(s => !STANDARD_SECTIONS.includes(s))];
     const [deleting,  setDeleting]  = useState(false);
@@ -293,7 +303,11 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
       ow        !== (initialTask.owner     || '') ||
       dd        !== (initialTask.dueDate   || '') ||
       co        !== initialCoSlug             ||
-      sec       !== (initialTask.taskType || '');
+      sec       !== (initialTask.taskType || '') ||
+      wtype     !== (initialTask.type || '')     ||
+      oppId     !== ((initialTask.opportunityIds   || [])[0] || '') ||
+      projId    !== ((initialTask.relatedProjectIds || [])[0] || '') ||
+      cliId     !== ((initialTask.clientIds        || [])[0] || '');
 
     // Load notes on mount
     useEffect(() => {
@@ -330,7 +344,10 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
       try {
         await updateTask(initialTask.id, {
           task: taskTitle, status: st, priority: pr, owner: ow, dueDate: dd || null,
-          dealCategory: nextCats, taskType: sec || null,
+          dealCategory: nextCats, taskType: sec || null, type: wtype || null,
+          opportunityIds:    oppId  ? [oppId]  : [],
+          relatedProjectIds: projId ? [projId] : [],
+          clientIds:         cliId  ? [cliId]  : [],
         });
         showToast('Saved ✓');
         closeOv();
@@ -486,32 +503,36 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
               </Sel>
             </FR>
           </div>
-          {/* Related opportunity — read-only join via the task's Related
-              Opportunities relation. Shows which effort this task belongs to and
-              whether it's internal or external. */}
-          {(() => {
-            const relOpps = (initialTask.relatedOpportunities || []).map(id => oppMap[id]).filter(Boolean);
-            if (!relOpps.length) return null;
-            return (
-              <FR label="Related opportunity">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {relOpps.map(o => (
-                    <span key={o.id}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6,
-                        padding: '4px 10px', borderRadius: 999, background: C.bg2, border: `1px solid ${C.cr3}`,
-                        fontFamily: MONO, fontSize: 11, color: C.ink7 }}>
-                      {o.name}
-                      {o.kanbanType && (
-                        <Tag bg={o.kanbanType === 'internal' ? C.bluS : C.grnS} fg={o.kanbanType === 'internal' ? C.blu : C.grn}>
-                          {o.kanbanType}
-                        </Tag>
-                      )}
-                    </span>
-                  ))}
-                </div>
-              </FR>
-            );
-          })()}
+          {/* Internal/External + cross-table connections (editable). */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+            <FR label="Type">
+              <Sel value={wtype} onChange={e => setWtype(e.target.value)}>
+                <option value="">— Unset</option>
+                <option value="Internal">Internal</option>
+                <option value="External">External</option>
+              </Sel>
+            </FR>
+            <FR label="Opportunity">
+              <Sel value={oppId} onChange={e => setOppId(e.target.value)}>
+                <option value="">— None</option>
+                {opps.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+              </Sel>
+            </FR>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+            <FR label="Project">
+              <Sel value={projId} onChange={e => setProjId(e.target.value)}>
+                <option value="">— None</option>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </Sel>
+            </FR>
+            <FR label="Client">
+              <Sel value={cliId} onChange={e => setCliId(e.target.value)}>
+                <option value="">— None</option>
+                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </Sel>
+            </FR>
+          </div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
@@ -668,9 +689,13 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
   function TForm({ presetCompanySlug = '', presetSection = '' }) {
     // Default company: explicit preset → the page/tab's active company → none.
     const [f, setF] = useState({
-      task: '', owner: '', priority: '', status: 'Not started', dueDate: '',
+      task: '', owner: '', priority: '', status: 'Not Started', dueDate: '',
       company: presetCompanySlug || activeCompanySlug || '',
       section: presetSection || '',
+      type: '',
+      opportunityId: '',
+      projectId: '',
+      clientId: '',
       note: '',
     });
     // Extra category tags beyond the primary company tag.
@@ -689,9 +714,16 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
       setSaving(true);
       try {
         const cats = [...new Set([companyCat, activeCompanyCategory, ...tags].filter(Boolean))];
+        // Entity (single-select) is the company tab driver. Use the chosen
+        // company's canonical category, falling back to the active company page.
+        const entity = companyCat || activeCompanyCategory || undefined;
         await createTask({
           task: f.task, owner: f.owner, priority: f.priority, status: f.status,
-          dueDate: f.dueDate, dealCategory: cats, taskType: f.section || undefined,
+          dueDate: f.dueDate, entity, type: f.type || undefined,
+          dealCategory: cats, taskType: f.section || undefined,
+          opportunityIds:    f.opportunityId ? [f.opportunityId] : undefined,
+          relatedProjectIds: f.projectId     ? [f.projectId]     : undefined,
+          clientIds:         f.clientId      ? [f.clientId]      : undefined,
           note: f.note || undefined,
         });
         showToast('Task created ✓');
@@ -734,6 +766,34 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
             <Sel value={f.section} onChange={fld('section')}>
               <option value="">— None</option>
               {sectionOpts.map(s => <option key={s} value={s}>{s}</option>)}
+            </Sel>
+          </FR>
+        </div>
+        <FR label="Type">
+          <Sel value={f.type} onChange={fld('type')}>
+            <option value="">— Unset</option>
+            <option value="Internal">Internal</option>
+            <option value="External">External</option>
+          </Sel>
+        </FR>
+        {/* Cross-table connections — link this task to an opportunity, project, or client. */}
+        <FR label="Opportunity">
+          <Sel value={f.opportunityId} onChange={fld('opportunityId')}>
+            <option value="">— None</option>
+            {opps.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+          </Sel>
+        </FR>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+          <FR label="Project">
+            <Sel value={f.projectId} onChange={fld('projectId')}>
+              <option value="">— None</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </Sel>
+          </FR>
+          <FR label="Client">
+            <Sel value={f.clientId} onChange={fld('clientId')}>
+              <option value="">— None</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Sel>
           </FR>
         </div>
@@ -796,9 +856,9 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
     const handleTranscript = async text => {
       try {
         const res = await parseVoice(text, { section: 'new-task', tasks });
-        setPrefill(res.task || { task: text, priority: 'Medium', status: 'Not started' });
+        setPrefill(res.task || { task: text, priority: 'Medium', status: 'Not Started' });
       } catch {
-        setPrefill({ task: text, priority: 'Medium', status: 'Not started' });
+        setPrefill({ task: text, priority: 'Medium', status: 'Not Started' });
       }
       setStep('review');
     };
@@ -812,7 +872,7 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
   }
 
   function VoiceReviewForm({ prefill }) {
-    const [f, setF] = useState({ task: '', owner: '', priority: 'Medium', status: 'Not started', dueDate: '', dealCategory: '', ...prefill });
+    const [f, setF] = useState({ task: '', owner: '', priority: 'Medium', status: 'Not Started', dueDate: '', dealCategory: '', ...prefill });
     const fld = k => e => setF(p => ({ ...p, [k]: e.target.value }));
     const [saving, setSaving] = useState(false);
     const save = async () => {
@@ -820,7 +880,8 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
       setSaving(true);
       try {
         const cats = [...new Set([activeCompanyCategory, f.dealCategory].filter(Boolean))];
-        await createTask({ ...f, dealCategory: cats });
+        const entity = f.dealCategory || activeCompanyCategory || undefined;
+        await createTask({ ...f, entity, dealCategory: cats });
         showToast('Task created ✓'); closeOv(); load();
       } catch (e) { showToast('Failed: ' + e.message); }
       setSaving(false);
@@ -898,9 +959,9 @@ export default function Tasks({ user, showToast, openOv, closeOv, companyFilter 
             card. */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
           {t.taskType && <Tag bg={C[tpB]} fg={C[tpF]}>{t.taskType}</Tag>}
-          {showDealPill && (t.dealCategory || []).map(dc => (
-            <span key={dc} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', background: C.bg2, border: `1px solid ${C.cr3}`, borderRadius: 999, fontSize: 10, color: C.ink7, fontFamily: MONO }}>
-              <span style={{ color: C.acc }}>◉</span>{dc}
+          {(t.relatedProjectNames || []).map((pn, i) => (
+            <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px', background: C.bg2, border: `1px solid ${C.cr3}`, borderRadius: 999, fontSize: 10, color: C.ink7, fontFamily: MONO }}>
+              <span style={{ color: C.acc }}>▸</span>{pn}
             </span>
           ))}
           {t.priority && <Tag bg={prBg(t.priority)} fg={prFg(t.priority)}>{t.priority}</Tag>}

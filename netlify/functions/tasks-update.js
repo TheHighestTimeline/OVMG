@@ -11,7 +11,8 @@ export const handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { id, task, status, priority, owner, dueDate, dealCategory, taskType, updateNote } = body;
+    const { id, task, status, priority, owner, dueDate, dealCategory, taskType, entity, type,
+            relatedProjectIds, opportunityIds, clientIds, updateNote } = body;
     if (!id) return err(400, 'id is required');
 
     const update = {};
@@ -21,12 +22,14 @@ export const handler = async (event) => {
     if (owner        !== undefined) update.owner        = owner;
     if (dueDate      !== undefined) update.dueDate      = dueDate || null;
     if (taskType     !== undefined) update.taskType     = taskType || null;
+    if (entity       !== undefined) update.entity       = entity || null;
+    if (type         !== undefined) update.type         = type || null;
     if (dealCategory !== undefined) update.dealCategory = Array.isArray(dealCategory) ? dealCategory : [dealCategory].filter(Boolean);
 
-    // Inline note: fetch existing Notes field, append timestamp + text, write back
+    // Inline note: append timestamp + text to the Description field, preserving prior content.
     if (updateNote && String(updateNote).trim()) {
       const record = await airtableGet(TABLE(), id);
-      const existing = record.fields?.['Notes'] || '';
+      const existing = record.fields?.['Description'] || '';
       const ts = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       const appended = existing
         ? `${existing}\n[${ts}] ${updateNote.trim()}`
@@ -35,6 +38,11 @@ export const handler = async (event) => {
     }
 
     const fields = toAirtableFields(update, TASKS_MAP);
+    // Linked-record fields (arrays of record IDs). Passing [] clears the link.
+    if (relatedProjectIds !== undefined) fields['Related Project'] = Array.isArray(relatedProjectIds) ? relatedProjectIds : [];
+    if (opportunityIds    !== undefined) fields['Opportunity']     = Array.isArray(opportunityIds)    ? opportunityIds    : [];
+    if (clientIds         !== undefined) fields['Client']          = Array.isArray(clientIds)         ? clientIds         : [];
+
     if (Object.keys(fields).length === 0) return ok({ id, updated: false });
 
     await airtableUpdate(TABLE(), id, fields);

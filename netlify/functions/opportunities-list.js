@@ -2,7 +2,9 @@ import { airtableList, fromAirtableRecord, OPPORTUNITIES_MAP } from './_airtable
 import { ok, err, CORS } from './_notion.js';
 import { requireAuth } from './_auth.js';
 
-const TABLE = () => process.env.AIRTABLE_TABLE_OPPORTUNITIES || 'Opportunities';
+const TABLE        = () => process.env.AIRTABLE_TABLE_OPPORTUNITIES || 'Opportunities';
+const PROJECTS_TBL = () => process.env.AIRTABLE_TABLE_PROJECTS      || 'Projects';
+const TASKS_TBL    = () => process.env.AIRTABLE_TABLE_TASKS         || 'Master Action Board';
 
 export const handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS };
@@ -10,26 +12,48 @@ export const handler = async (event) => {
   if (authErr) return authErr;
 
   try {
-    const records = await airtableList(TABLE());
+    // Load opportunities plus the two tables we walk to connect them to tasks:
+    //   Opportunity --(Projects)--> Project --(Master Action Board)--> Task
+    const [records, projectRecs, taskRecs] = await Promise.all([
+      airtableList(TABLE()),
+      airtableList(PROJECTS_TBL()).catch(() => []),
+      airtableList(TASKS_TBL()).catch(() => []),
+    ]);
+
+    // id -> task summary
+    const taskById = Object.fromEntries(taskRecs.map(t => [t.id, {
+      id:     t.id,
+      name:   t.fields?.['Action Name'] || '',
+      status: t.fields?.['Status'] || '',
+    }]));
+
+    // id -> { name, taskIds } for each project
+    const projectById = Object.fromEntries(projectRecs.map(p => [p.id, {
+      name:    p.fields?.['Project Name'] || '',
+      taskIds: p.fields?.['Master Action Board'] || [],
+    }]));
 
     const opportunities = records.map(r => {
       const opp = fromAirtableRecord(r, OPPORTUNITIES_MAP);
 
-      // Work Type → kanbanType
-      const wt = r.fields['Work Type'];
-      opp.kanbanType = wt === 'Internal' ? 'internal' : wt === 'External' ? 'external' : null;
+      // Linked records (live base column names)
+      opp.companyIds = r.fields['Companies']          || [];
+      opp.projectIds = r.fields['Projects']           || [];
+      opp.contactIds = r.fields['Associated Contact'] || [];
 
-      // Drive link — dedicated field in Airtable (was encoded in Notes text in Notion)
-      opp.driveLink = r.fields['Drive Link'] || null;
+      // Walk Opportunity -> Projects -> Tasks
+      opp.projectNames = opp.projectIds.map(id => projectById[id]?.name || id);
+      const taskIdSet  = new Set();
+      opp.projectIds.forEach(pid => (projectById[pid]?.taskIds || []).forEach(tid => taskIdSet.add(tid)));
+      opp.taskIds = [...taskIdSet];
+      opp.tasks   = opp.taskIds.map(tid => taskById[tid]).filter(Boolean);
 
-      // Linked records
-      opp.companyIds = r.fields['Deal From']      || [];
-      opp.taskIds    = r.fields['Roll Up Tasks']  || [];
+      // Entity drives the company tabs; Type drives the Internal/External toggle.
+      opp.dealCategory = opp.entity ? [opp.entity] : [];
+      opp.kanbanType   = opp.type ? String(opp.type).toLowerCase() : null;
 
-      // Normalise dealCategory to array
-      if (!Array.isArray(opp.dealCategory)) {
-        opp.dealCategory = opp.dealCategory ? [opp.dealCategory] : [];
-      }
+      // Field not present in the live base — kept for frontend compatibility
+      opp.driveLink = null;
 
       return opp;
     });

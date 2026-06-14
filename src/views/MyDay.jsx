@@ -424,7 +424,7 @@ export default function MyDay({ user, showToast }) {
             task:     e('task')     || item.task     || item.taskTitle || 'Untitled',
             owner:    e('owner')    || item.owner    || user.fullName.split(' ')[0],
             priority: e('priority') || item.priority || 'Medium',
-            status:   e('newStatus') || 'Not started',
+            status:   e('newStatus') || 'Not Started',
             dueDate:  e('dueDate')  || item.dueDate  || '',
           });
           n++;

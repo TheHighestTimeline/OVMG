@@ -111,15 +111,18 @@ export function companyNameMatchesSlug(name, slug) {
 // they appear in Notion) that map onto each website company tab. Spelling
 // variants are included so matching survives minor differences. OVTV/OVV have
 // no Deal Category yet — their tabs simply show nothing until one is assigned.
+// Values match the "Entity" single-select options on the Master Action Board /
+// Opportunities tables. Legacy Notion tokens are kept so older tagged records
+// still resolve. Matching is space/case-insensitive (see _norm).
 export const SLUG_TO_DEAL_CATEGORY = {
   ovmg:         ['OVMG'],
-  ovm:          ['ONEVIBEMEDIA'],
-  ovd:          ['ONEVIBEDATA'],
-  ovf:          ['ONEVIBEFEST'],
-  amplify:      ['AMPLIFYARTISTS', 'AMPLIFYBRANDS'],
-  carbonsponge: ['CARBONE SPONGE', 'CARBON SPONGE'],
-  ovtv:         [],
-  ovv:          [],
+  ovm:          ['OVM', 'ONEVIBEMEDIA'],
+  ovd:          ['OVD', 'ONEVIBEDATA'],
+  ovf:          ['OVF', 'ONEVIBEFEST'],
+  ovtv:         ['OVTV', 'ONEVIBETV'],
+  ovv:          ['OVV'],
+  amplify:      ['Amplify', 'AMPLIFYARTISTS', 'AMPLIFYBRANDS'],
+  carbonsponge: ['Carbon Sponge', 'CARBONE SPONGE', 'CARBON SPONGE'],
 };
 
 const _norm = s => String(s || '').toLowerCase().replace(/\s+/g, '');

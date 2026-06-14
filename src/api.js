@@ -62,6 +62,10 @@ export const updateTask     = (id, data) => req('tasks-update',      { method: '
 export const deleteTask     = id         => req('tasks-delete',      { method: 'POST',  body: JSON.stringify({ id }) });
 export const getTaskNotes   = id         => req(`tasks-notes-list?id=${encodeURIComponent(id)}`);
 
+// Projects & Clients (for form connection dropdowns)
+export const getProjects    = ()         => req('projects-list');
+export const getClients     = ()         => req('clients-list');
+
 // Contacts
 export const getContacts   = ()         => req('contacts-list');
 export const createContact = data       => req('contacts-create', { method: 'POST',  body: JSON.stringify(data) });

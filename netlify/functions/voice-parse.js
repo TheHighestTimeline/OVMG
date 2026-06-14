@@ -73,7 +73,7 @@ Return a JSON object with this exact shape:
     {
       "taskId": "<notion page id or null if no match>",
       "taskTitle": "<matched task name>",
-      "newStatus": "<Done|In progress|Not started|On Hold|Waiting On Response|null>",
+      "newStatus": "<Done|In Progress|Not Started|On Hold|Waiting On Response|Needs Attention|Submitted|Canceled|null>",
       "note": "<what the user said about this task>",
       "confidence": 0.0-1.0
     }
@@ -95,12 +95,12 @@ Active tasks: ${tasksJSON}
 
 For a new task command, return:
 {
-  "task": { "task": "...", "owner": "...", "priority": "High|Medium|Low", "status": "Not started", "dueDate": "YYYY-MM-DD or null" }
+  "task": { "task": "...", "owner": "...", "priority": "High|Medium|Low", "status": "Not Started", "dueDate": "YYYY-MM-DD or null" }
 }
 
 For an update command, return:
 {
-  "newStatus": "Done|In progress|Not started|On Hold|Waiting On Response|null",
+  "newStatus": "Done|In Progress|Not Started|On Hold|Waiting On Response|Needs Attention|Submitted|Canceled|null",
   "summary": "brief description of the update"
 }
 
