@@ -8,11 +8,15 @@ import { getAmplifyProjects, updateAmplifyProject, airtableRecordUrl, getAirtabl
 
 // ── Kanban column order & colors ──────────────────────────────────────────────
 const STAGES = [
-  { id: 'Intake Needed',    color: '#e8a838' },
-  { id: 'Not Started',      color: '#6b7280' },
-  { id: 'In Work',          color: '#3b82f6' },
-  { id: 'Ready To Deliver', color: '#8b5cf6' },
-  { id: 'Complete',         color: '#10b981' },
+  { id: 'Intake Needed',  color: '#e8a838' },
+  { id: 'In Progress',    color: '#3b82f6' },
+  { id: 'Quality Check',  color: '#8b5cf6' },
+  { id: 'First Delivery', color: '#06b6d4' },
+  { id: 'Revision',       color: '#f97316' },
+  { id: 'Final Delivery', color: '#10b981' },
+  { id: 'Hold',           color: '#6b7280' },
+  { id: 'Closed',         color: '#1d4ed8' },
+  { id: 'Cancelled',      color: '#ef4444' },
 ];
 
 const PRIORITY_MAP = {
@@ -26,7 +30,7 @@ const PRIORITY_MAP = {
 function ProjectDrawer({ project, onSave, onClose, showToast, tableId }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    status:   project.status   || 'Not Started',
+    status:   project.status   || 'Intake Needed',
     notes:    project.notes    || '',
     priority: project.priority || '',
     dueDate:  project.dueDate  ? project.dueDate.slice(0, 10) : '',
@@ -187,7 +191,7 @@ export default function AmplifyKanban({ showToast, openOv, closeOv }) {
   const byStage = useMemo(() => {
     const m = Object.fromEntries(STAGES.map(s => [s.id, []]));
     scoped.forEach(p => {
-      const key = STAGES.find(s => s.id === p.status) ? p.status : 'Not Started';
+      const key = STAGES.find(s => s.id === p.status) ? p.status : 'Intake Needed';
       m[key].push(p);
     });
     return m;
