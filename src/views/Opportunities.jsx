@@ -4,7 +4,7 @@ import { Eyebrow, Tag, Spinner, Btn, Inp, Sel, FR, useConfirm } from '../compone
 import { getOpportunities, createOpportunity, updateOpportunity, deleteOpportunity,
          getTasks, createTask, updateTask, deleteTask,
          getAirtableSchema, airtableRecordUrl } from '../api.js';
-import { dealCategoryMatchesSlug, SLUG_TO_DEAL_CATEGORY } from '../constants/roles.js';
+import { dealCategoryMatchesSlug, SLUG_TO_DEAL_CATEGORY, COMPANIES, COMPANY_META } from '../constants/roles.js';
 import useIsMobile from '../hooks/useIsMobile.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -316,6 +316,8 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
   // internal vs external (client) filter that applies to both views.
   const [view, setView] = useState(viewMode);
   const [typeFilter, setTypeFilter] = useState('All'); // 'All' | 'internal' | 'external'
+  // Company filter for the main (non-company-scoped) kanban/list
+  const [companySelect, setCompanySelect] = useState('All');
   const [dragOverStage, setDragOver]  = useState(null);
   const dragCard = useRef(null);
   const [confirmNode, confirm] = useConfirm();
@@ -344,14 +346,16 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
 
   useEffect(() => { load(); }, [load]);
 
-  // Scope to this company's opportunities, then filter by stage
+  // Scope to this company's opportunities, then filter by stage/type/company selector
   const scoped = useMemo(() => {
     let list = opps;
+    // companyFilter = prop from company tab; companySelect = main kanban dropdown
     if (companyFilter) list = list.filter(o => dealCategoryMatchesSlug(o.dealCategory, companyFilter));
+    else if (companySelect !== 'All') list = list.filter(o => dealCategoryMatchesSlug(o.dealCategory, companySelect));
     if (stageFilter !== 'All') list = list.filter(o => o.stage === stageFilter);
-    if (typeFilter !== 'All') list = list.filter(o => (o.kanbanType || '') === typeFilter);
+    if (typeFilter  !== 'All') list = list.filter(o => (o.kanbanType || '') === typeFilter);
     return list;
-  }, [opps, companyFilter, stageFilter, typeFilter]);
+  }, [opps, companyFilter, companySelect, stageFilter, typeFilter]);
 
   // Reusable Internal/External + Kanban/List control row. Called as a function
   // ({renderControlRow()}) rather than rendered as <ControlRow/> so it doesn't
@@ -496,6 +500,26 @@ export default function Opportunities({ showToast, openOv, closeOv, companyFilte
             <Btn onClick={() => openForm()}>+ New</Btn>
           </div>
         </div>
+
+        {/* Company filter pills — only on the main /kanban tab (no companyFilter prop) */}
+        {!companyFilter && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12, flexShrink: 0 }}>
+            {[{ slug: 'All', label: 'All Companies', color: C.ink9 },
+              ...COMPANIES.map(s => ({ slug: s, label: COMPANY_META[s]?.label || s, color: COMPANY_META[s]?.color_hex || C.ink5 }))
+            ].map(({ slug, label, color }) => {
+              const on = companySelect === slug;
+              return (
+                <button key={slug} onClick={() => setCompanySelect(slug)} style={{
+                  padding: '4px 11px', borderRadius: 99, fontSize: 11, fontFamily: SANS, cursor: 'pointer',
+                  border: `1px solid ${on ? color : C.cr3}`,
+                  background: on ? color + '18' : C.bg,
+                  color: on ? color : C.ink5,
+                  fontWeight: on ? 600 : 400,
+                }}>{label}</button>
+              );
+            })}
+          </div>
+        )}
 
         {isMobile ? (
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>

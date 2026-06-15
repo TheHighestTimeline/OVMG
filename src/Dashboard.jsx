@@ -10,7 +10,6 @@ import MyDay         from './views/MyDay.jsx';
 import Contacts      from './views/Contacts.jsx';
 import Tasks         from './views/Tasks.jsx';
 import Opportunities from './views/Opportunities.jsx';
-import Social        from './views/Social.jsx';
 import Settings      from './views/Settings.jsx';
 import Admin         from './views/Admin.jsx';
 import Ncnda         from './views/Ncnda.jsx';
@@ -83,7 +82,6 @@ const SUBTAB_ICONS = {
   tools:      '⚒',
   html:       '◧',
   email:      '◈',
-  clients:    '◎',
 };
 
 // ── Company section — collapsible (controlled) ────────────────────────────────
@@ -263,7 +261,6 @@ export default function Dashboard({ user, onLogout }) {
       // (internal/external + Kanban⇄List). Same data as each company's Kanban
       // tab, so cards created here surface on the matching company tab too.
       'kanban':     gateView('kanban',     <Opportunities {...ctx} viewMode="kanban" allowViewToggle />),
-      'social':     gateView('social',     <Social     {...ctx} />),
       'settings':   gateView('settings',   <Settings   {...ctx} onLogout={onLogout} />),
       'admin':      gateView('admin',      <Admin      {...ctx} />),
       'cost':       user.isAdmin ? <CostDashboard {...ctx} /> : <AccessDenied />,
@@ -281,9 +278,8 @@ export default function Dashboard({ user, onLogout }) {
   };
 
   const currentView = resolveView();
-  const isSocial    = view === 'social';
   const isTools     = view === 'tools';
-  const isFullBleed = isSocial || isTools;
+  const isFullBleed = isTools;
 
   // Mobile top bar label
   const currentLabel = (() => {

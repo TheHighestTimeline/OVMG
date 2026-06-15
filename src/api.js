@@ -98,6 +98,10 @@ export const deleteOutreach    = id         => req('outreach-delete', { method: 
 export const getOutreachNotes  = id         => req(`outreach-notes-list?id=${encodeURIComponent(id)}`);
 export const addOutreachNote   = (id, note) => req('outreach-update', { method: 'PATCH', body: JSON.stringify({ id, updateNote: note }) });
 
+// Amplify Projects (Amplify Artists company kanban)
+export const getAmplifyProjects    = ()         => req('amplify-projects-list');
+export const updateAmplifyProject  = (id, data) => req('amplify-projects-update', { method: 'PATCH', body: JSON.stringify({ id, ...data }) });
+
 // Team
 export const getTeamMembers = () => req('team-list');
 

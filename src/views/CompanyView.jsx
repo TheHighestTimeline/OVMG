@@ -4,18 +4,16 @@ import { Tag, Eyebrow, Spinner, ErrorBoundary } from '../components/UI.jsx';
 import { COMPANIES, COMPANY_META, COMPANY_SUBTAB_LABELS } from '../constants/roles.js';
 
 // ── Lazy imports (keep bundle chunks small) ────────────────────────────────────
-const Contacts      = lazy(() => import('./Contacts.jsx'));
-const Tasks         = lazy(() => import('./Tasks.jsx'));
-const Opportunities = lazy(() => import('./Opportunities.jsx'));
-const References    = lazy(() => import('./References.jsx'));
-const Email         = lazy(() => import('./Email.jsx'));
-const Social        = lazy(() => import('./Social.jsx'));
-const OvmHtml       = lazy(() => import('./OvmHtml.jsx'));
-const Tools         = lazy(() => import('./Tools.jsx'));
-const Outreach      = lazy(() => import('./Outreach.jsx'));
-// AmplifyKanban, DatacenterKanban, CompanyKanban removed — all kanban tabs
-// now use the Notion-backed Opportunities view.
-const DriveView     = lazy(() => import('./DriveView.jsx'));
+const Contacts       = lazy(() => import('./Contacts.jsx'));
+const Tasks          = lazy(() => import('./Tasks.jsx'));
+const Opportunities  = lazy(() => import('./Opportunities.jsx'));
+const AmplifyKanban  = lazy(() => import('./AmplifyKanban.jsx'));
+const References     = lazy(() => import('./References.jsx'));
+const Email          = lazy(() => import('./Email.jsx'));
+const OvmHtml        = lazy(() => import('./OvmHtml.jsx'));
+const Tools          = lazy(() => import('./Tools.jsx'));
+const Outreach       = lazy(() => import('./Outreach.jsx'));
+const DriveView      = lazy(() => import('./DriveView.jsx'));
 
 // ── Sub-tab icon map ──────────────────────────────────────────────────────────
 const SUBTAB_ICONS = {
@@ -28,7 +26,6 @@ const SUBTAB_ICONS = {
   tools:      '⚒',
   html:       '◧',
   email:      '◈',
-  clients:    '◎',
 };
 
 function LoadingFallback() {
@@ -84,10 +81,9 @@ function PlaceholderTab({ slug, subTab, meta }) {
 // placeholder — the same pattern Carbon Sponge already used.
 const COMPANY_TOOLSETS = {
   ovm: [
-    { id: 'kanban',  label: 'OVM Kanban',  icon: '◈', render: (p) => <Outreach {...p} /> },
-    { id: 'html',    label: 'HTML Editor', icon: '◧', render: (p) => <OvmHtml {...p} /> },
-    { id: 'email',   label: 'Email',       icon: '◈', render: (p) => <Email   {...p} /> },
-    { id: 'clients', label: 'Clients',     icon: '◎', render: (p) => <Social  {...p} companyFilter="ovm" /> },
+    { id: 'kanban', label: 'OVM Kanban',  icon: '◈', render: (p) => <Outreach {...p} /> },
+    { id: 'html',   label: 'HTML Editor', icon: '◧', render: (p) => <OvmHtml {...p} /> },
+    { id: 'email',  label: 'Email',       icon: '◈', render: (p) => <Email   {...p} /> },
   ],
 };
 
@@ -155,9 +151,15 @@ function SubTabContent({ slug, subTab, user, showToast, openOv, closeOv, setView
 
     case 'opportunities':
     case 'kanban':
-      // The Kanban tab is the single pipeline surface: it shows the Notion
-      // Opportunities DB and lets the user flip between Kanban and List views
-      // (Opportunities was merged in — no longer a separate tab).
+      // Amplify Artists uses the dedicated Amplify Projects kanban (Airtable-backed,
+      // populated by Zapier). All other companies use the shared Opportunities view.
+      if (slug === 'amplify') {
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <AmplifyKanban {...sharedProps} />
+          </Suspense>
+        );
+      }
       return (
         <Suspense fallback={<LoadingFallback />}>
           <Opportunities {...sharedProps} companyFilter={slug} viewMode="kanban" allowViewToggle />
@@ -192,13 +194,6 @@ function SubTabContent({ slug, subTab, user, showToast, openOv, closeOv, setView
         </Suspense>
       );
 
-    case 'clients':
-      return (
-        <Suspense fallback={<LoadingFallback />}>
-          <Social {...sharedProps} companyFilter={slug} />
-        </Suspense>
-      );
-
     case 'tools':
       return <CompanyTools slug={slug} sharedProps={sharedProps} />;
 
@@ -229,7 +224,7 @@ export default function CompanyView({ slug, subTab, ctx = {} }) {
   const subLabel = COMPANY_SUBTAB_LABELS[subTab] || subTab || 'Overview';
   const icon     = SUBTAB_ICONS[subTab] || '◇';
 
-  const hasContent = ['contacts', 'tasks', 'kanban', 'opportunities', 'drive', 'references', 'html', 'email', 'clients', 'tools'].includes(subTab);
+  const hasContent = ['contacts', 'tasks', 'kanban', 'opportunities', 'drive', 'references', 'html', 'email', 'tools'].includes(subTab);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
