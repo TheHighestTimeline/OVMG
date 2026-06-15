@@ -6,6 +6,30 @@ import { requireAuth } from './_auth.js';
 
 const TABLE = () => process.env.AIRTABLE_TABLE_AMPLIFY_PROJECTS || 'Amplify Projects';
 
+// Map legacy Airtable Status values → dashboard stage IDs.
+// When a user drags a card to a new column the new stage ID is written back,
+// so old values will be replaced organically over time.
+const STATUS_ALIASES = {
+  'not started':      'Intake Needed',
+  'intake needed':    'Intake Needed',
+  'in work':          'In Progress',
+  'in progress':      'In Progress',
+  'ready to deliver': 'Final Delivery',
+  'final delivery':   'Final Delivery',
+  'complete':         'Closed',
+  'closed':           'Closed',
+  'cancelled':        'Cancelled',
+  'quality check':    'Quality Check',
+  'first delivery':   'First Delivery',
+  'revision':         'Revision',
+  'hold':             'Hold',
+};
+
+function normalizeStatus(raw) {
+  if (!raw) return 'Intake Needed';
+  return STATUS_ALIASES[String(raw).toLowerCase().trim()] || raw;
+}
+
 export const handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS };
   const authErr = await requireAuth(event);
@@ -19,7 +43,7 @@ export const handler = async (event) => {
     const projects = records.map(r => ({
       id:              r.id,
       name:            r.fields['Name']                || '',
-      status:          r.fields['Status']              || 'Not Started',
+      status:          normalizeStatus(r.fields['Status']),
       client:          r.fields['Client / Artist Name'] || r.fields['Client'] || '',
       deliverableType: typeof r.fields['Deliverable Type'] === 'object'
                          ? r.fields['Deliverable Type']?.name
