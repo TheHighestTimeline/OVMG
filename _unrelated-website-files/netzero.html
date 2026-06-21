@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Connect — OVMG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .reveal.will-animate{opacity:0!important;transform:translateY(20px)!important;transition:opacity .9s ease,transform .9s ease!important}
+  .reveal.will-animate.in{opacity:1!important;transform:none!important}
+  .form-wrap{margin-top:48px;border:1px solid var(--line);background:rgba(13,13,23,0.5);backdrop-filter:blur(8px)}
+  .form-foot{padding:24px 28px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  .form-foot .note{font-family:var(--sans);font-size:11.5px;color:var(--fg-mute);letter-spacing:0.06em}
+
+  .success{display:none;padding:60px 40px;text-align:center}
+  .success.show{display:block}
+  .success h3{font-family:var(--serif);font-size:44px;font-weight:500;letter-spacing:-0.015em;line-height:1;color:var(--fg)}
+  .success h3 em{font-style:italic;color:var(--accent)}
+  .success p{margin-top:18px;color:var(--fg-dim);font-size:16px;max-width:48ch;margin-inline:auto;line-height:1.55}
+
+  .contact-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:80px;margin-top:0}
+  @media (max-width:980px){.contact-grid{grid-template-columns:1fr;gap:48px}}
+  .contact-side h3{font-family:var(--serif);font-weight:500;font-size:32px;letter-spacing:-0.01em;line-height:1.05;margin-bottom:18px}
+  .contact-side p{color:var(--fg-dim);font-size:15.5px;line-height:1.6;max-width:42ch}
+  .contact-side .kv-table{margin-top:36px}
+</style>
+</head>
+<body data-page="contact">
+
+<!-- ===== NAV ===== -->
+<nav class="top" id="topnav">
+  <div class="wrap inner">
+    <a href="index.html" class="logo" aria-label="OVMG home"><img src="logos/ovmg-logo-final.png" alt="OneVibeMediaGroup" style="height:28px;width:auto;display:block"></a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="platform.html">How We Work</a></li>
+      <li><a href="netzero.html">Stewardship</a></li>
+      <li><a href="projects.html">Portfolio</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn btn-ghost btn-sm">Connect <span class="arrow">→</span></a>
+  </div>
+</nav>
+
+<!-- ===== PAGE HERO ===== -->
+<header class="page-hero">
+  <div class="glow"></div>
+  <div class="grid-bg"></div>
+  <div class="wrap inner reveal">
+    <div>
+      <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Connect</span></div>
+      <h1>Start a<br/><em>Conversation</em>.</h1>
+    </div>
+    <div>
+      <p class="lede">Bring us a site, a thesis, or capital. We will tell you honestly whether it fits what we are building and move quickly if it does. Tell us about your opportunity and we will respond within two business days.</p>
+    </div>
+  </div>
+</header>
+
+<!-- ===== CONTACT + FORM ===== -->
+<section class="block" style="padding-top:80px">
+  <div class="wrap">
+    <div class="contact-grid">
+      <div class="contact-side reveal">
+        <div class="section-num" style="margin-bottom:18px"><span class="bar"></span> §01 · Get in Touch</div>
+        <h3>One network.<br/>Every party at<br/>the table.</h3>
+        <p>OVMG connects sites, capital, offtakers, and builders. Whether you are bringing a site opportunity, a capital thesis, an operator relationship, or a partnership idea, we want to hear it. We are direct, we move fast, and we know who to call.</p>
+
+        <div class="kv-table">
+          <div class="kv-row"><div class="k">General</div><div class="v">tanner@onevibemediagroup.com</div></div>
+          <div class="kv-row"><div class="k">Capital</div><div class="v">carsten@onevibemediagroup.com</div></div>
+          <div class="kv-row"><div class="k">Response Window</div><div class="v">Within 48 hours</div></div>
+        </div>
+      </div>
+
+      <form class="form-wrap reveal" id="reviewForm" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" type="text" placeholder="Full name" required />
+          </div>
+          <div class="field">
+            <label for="org">Organization</label>
+            <input id="org" type="text" placeholder="Company or fund" required />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="you@firm.com" required />
+          </div>
+          <div class="field">
+            <label for="role">I am a...</label>
+            <select id="role">
+              <option value="Capital Partner / Investor">Capital Partner / Investor</option>
+              <option value="Hyperscaler / Operator">Hyperscaler / Operator</option>
+              <option value="Offtaker">Offtaker</option>
+              <option value="Site Owner / Land Holder">Site Owner / Land Holder</option>
+              <option value="Builder / Engineer">Builder / Engineer</option>
+              <option value="Utility / Connectivity Partner">Utility / Connectivity Partner</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="interest">I'm bringing...</label>
+            <select id="interest">
+              <option value="A Site Opportunity">A Site Opportunity</option>
+              <option value="Capital to Deploy">Capital to Deploy</option>
+              <option value="Offtake / Demand">Offtake / Demand</option>
+              <option value="A Partnership Idea">A Partnership Idea</option>
+              <option value="Engineering or Construction Capability">Engineering or Construction Capability</option>
+              <option value="Something Else">Something Else</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="region">Region</label>
+            <input id="region" type="text" placeholder="e.g. US Southeast, Mid-Atlantic, Multi-Region" />
+          </div>
+          <div class="field full">
+            <label for="msg">Tell us about it</label>
+            <textarea id="msg" rows="4" placeholder="A brief description of the opportunity, site, or question — the more specific, the better..."></textarea>
+          </div>
+        </div>
+        <div class="form-foot">
+          <span class="note">Submissions are confidential. Reviewed under NDA on request.</span>
+          <button type="submit" class="btn btn-primary">Send <span class="arrow">→</span></button>
+        </div>
+        <div class="success" id="successMsg">
+          <h3>We'll be in <em>touch</em>.</h3>
+          <p>Your message was received. We review every submission and will respond within two business days.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="index.html" class="logo"><img src="logos/ovmg-logo-final.png" alt="OneVibeMediaGroup" style="height:22px;width:auto;display:block;opacity:0.85"></a>
+        <p style="margin-top:16px;color:var(--fg-dim);font-size:14px;line-height:1.65;max-width:32ch">The connective tissue of the data center transaction.</p>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="platform.html">How We Work</a></li>
+          <li><a href="netzero.html">Stewardship</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Portfolio</h4>
+        <ul>
+          <li><a href="projects.html">Active Sites</a></li>
+          <li><a href="projects.html">Kingsboro, NC</a></li>
+          <li><a href="projects.html">Bennettsville, SC</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="contact.html">Connect</a></li>
+          <li><a href="mailto:tanner@onevibemediagroup.com">tanner@onevibemediagroup.com</a></li>
+          <li><a href="mailto:carsten@onevibemediagroup.com">carsten@onevibemediagroup.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© 2026 OneVibeMediaGroup. All rights reserved.</span>
+      <span>OVMG · Data Center Deal Origination</span>
+    </div>
+  </div>
+</footer>
+
+<script src="chrome.js"></script>
+<script>
+  /* ===== FORM SUBMISSION ===== */
+  (function(){
+    var form = document.getElementById('reviewForm');
+    var success = document.getElementById('successMsg');
+    if(!form) return;
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var name = document.getElementById('name').value.trim();
+      var email = document.getElementById('email').value.trim();
+      if(!name || !email){ return; }
+      form.querySelector('.form-grid').style.display = 'none';
+      form.querySelector('.form-foot').style.display = 'none';
+      success.classList.add('show');
+    });
+  })();
+</script>
+</body>
+</html>

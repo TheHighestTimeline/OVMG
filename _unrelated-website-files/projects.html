@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stewardship — OVMG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .reveal.will-animate{opacity:0!important;transform:translateY(20px)!important;transition:opacity .9s ease,transform .9s ease!important}
+  .reveal.will-animate.in{opacity:1!important;transform:none!important}
+  .stewardship-hero h1 .accent{color:var(--accent);font-style:italic}
+  .partners-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:48px;gap:40px;flex-wrap:wrap}
+  .partners-head h2{font-family:var(--serif);font-size:clamp(30px,3.5vw,48px);font-weight:400;letter-spacing:-0.02em;line-height:0.98}
+  .partners-head .note{font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg-mute);max-width:38ch;text-align:right}
+
+  /* Partner profile sections */
+  .partner-profile{border-top:1px solid var(--line);padding:72px 0}
+  .partner-profile:last-of-type{border-bottom:1px solid var(--line)}
+  .partner-profile-inner{display:grid;grid-template-columns:1fr 1.6fr;gap:80px;align-items:start}
+  @media(max-width:900px){.partner-profile-inner{grid-template-columns:1fr;gap:40px}}
+  .partner-logo-block{display:flex;flex-direction:column;gap:24px}
+  .partner-logo-box{
+    width:100%;
+    aspect-ratio:16/7;
+    border:1px solid var(--line);
+    background:rgba(13,13,23,0.4);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--sans);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--fg-mute);
+  }
+  .partner-logo-name{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-0.01em;color:var(--fg)}
+  .partner-logo-type{font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-top:6px}
+  .partner-body h4{font-family:var(--serif);font-size:clamp(22px,2.2vw,30px);font-weight:500;letter-spacing:-0.01em;line-height:1.1;margin-bottom:18px}
+  .partner-body p{color:var(--fg-dim);font-size:15.5px;line-height:1.65;max-width:52ch}
+  .partner-body .partner-link{display:inline-flex;align-items:center;gap:8px;margin-top:24px;font-family:var(--sans);font-size:12px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;border-bottom:1px solid var(--line-2);padding-bottom:6px;color:var(--fg-dim);transition:color .2s,border-color .2s}
+  .partner-body .partner-link:hover{color:var(--fg);border-color:var(--fg)}
+  .partner-body .impact-label{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg-mute);margin-top:36px;margin-bottom:12px}
+  .partner-body .impact-text{color:var(--fg);font-family:var(--serif);font-size:20px;font-weight:400;font-style:italic;line-height:1.4;max-width:44ch;border-left:2px solid var(--accent);padding-left:18px}
+</style>
+</head>
+<body data-page="netzero">
+
+<!-- ===== NAV ===== -->
+<nav class="top" id="topnav">
+  <div class="wrap inner">
+    <a href="index.html" class="logo" aria-label="OVMG home"><img src="logos/ovmg-logo-final.png" alt="OneVibeMediaGroup" style="height:28px;width:auto;display:block"></a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="platform.html">How We Work</a></li>
+      <li><a href="netzero.html" class="active">Stewardship</a></li>
+      <li><a href="projects.html">Portfolio</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn btn-ghost btn-sm">Connect <span class="arrow">→</span></a>
+  </div>
+</nav>
+
+<!-- ===== PAGE HERO ===== -->
+<header class="page-hero stewardship-hero">
+  <div class="glow"></div>
+  <div class="grid-bg"></div>
+  <div class="wrap inner reveal">
+    <div>
+      <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Stewardship</span></div>
+      <h1>Built with <span class="accent">purpose</span><br/>at the foundation.</h1>
+    </div>
+    <div>
+      <p class="lede">Our founders carry backgrounds in environmental conservation and community uplift. These aren't credentials we bolt on; they are the lens through which we evaluate every site, every partner, and every deal we put our name on.</p>
+    </div>
+  </div>
+</header>
+
+<!-- ===== PILLARS ===== -->
+<section class="block">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div>
+        <div class="section-num"><span class="bar"></span> §01 · Our Standard</div>
+        <h2>Land, community,<br/>and <em>responsibility</em>.</h2>
+      </div>
+      <p class="lede">We are building a portfolio of data center opportunities that we are proud to put our names on, not just financially, but environmentally and socially. This is the standard we hold ourselves to from day one.</p>
+    </div>
+
+    <div class="pillars reveal">
+      <div class="pillar">
+        <span class="num">01</span>
+        <h4>Land &amp; Habitat Preservation</h4>
+        <p>We evaluate every site with an eye toward minimizing ecological disruption. Where development and conservation can coexist, we build toward that outcome. Land is not a commodity; it is a responsibility we take seriously at the origination stage, before a single dollar is committed.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">02</span>
+        <h4>Community Uplift</h4>
+        <p>Every data center we help bring to life has the potential to transform a community through local jobs, infrastructure investment, and long-term economic development. We build relationships with local stakeholders from the first site visit, not as an afterthought when permits are needed.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">03</span>
+        <h4>Responsible Resource Use</h4>
+        <p>Data centers are resource-intensive by nature: power, water, land. We hold our sites and our partner network to a standard that accounts for long-term resource impact, and we make that part of the conversation at the deal stage, not after the fact.</p>
+      </div>
+      <div class="pillar">
+        <span class="num">04</span>
+        <h4>Conservation-First Site Selection</h4>
+        <p>Our founders' history in environmental work shapes how we screen and underwrite opportunities. Sites that create irrecoverable ecological harm don't make it into our portfolio. This isn't a policy we added later; it's the foundation the firm was built on.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PARTNERS ===== -->
+<section class="block">
+  <div class="wrap">
+    <div class="partners-head reveal">
+      <h2>Our partner<br/><em>network</em>.</h2>
+      <span class="note">Each partner was selected for alignment with our deal standard and stewardship values.</span>
+    </div>
+
+    <div class="partner-profile reveal">
+      <div class="partner-profile-inner">
+        <div class="partner-logo-block">
+          <div class="partner-logo-box">
+            <img src="logos/vela-tech-fixed.png" alt="Vela Tech" style="max-height:56px;max-width:80%;object-fit:contain">
+          </div>
+          <div>
+            <div class="partner-logo-name">Vela Tech</div>
+            <div class="partner-logo-type">EPC &amp; Hyperscaler Partner</div>
+          </div>
+        </div>
+        <div class="partner-body">
+          <h4>Default EPC partner and direct gateway to the world's largest hyperscalers.</h4>
+          <p>Vela Tech (led by Jeff Fini) brings 38 years and 50+ GW of delivered data center infrastructure across 5 continents. With 40+ hyperscale campuses completed and direct operator relationships at Meta, Google, Microsoft, Oracle, Apple, AWS, Nvidia, and OpenAI, Vela Tech is OVMG's committed default EPC partner — the construction and engineering layer that takes a site from deal to delivered.</p>
+          <div class="impact-label">Network Role</div>
+          <div class="impact-text">The engineering arm that turns a site opportunity into a functioning data center campus at hyperscale speed.</div>
+          <a href="https://velatech.com" class="partner-link" target="_blank" rel="noopener">Visit website <span>→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="partner-profile reveal">
+      <div class="partner-profile-inner">
+        <div class="partner-logo-block">
+          <div class="partner-logo-box">
+            <img src="logos/tlg-consulting.png" alt="TLG Consulting" style="max-height:64px;max-width:80%;object-fit:contain">
+          </div>
+          <div>
+            <div class="partner-logo-name">TLG Consulting</div>
+            <div class="partner-logo-type">Infrastructure &amp; Hyperscaler Partner</div>
+          </div>
+        </div>
+        <div class="partner-body">
+          <h4>Multi-GW infrastructure experience embedded directly into the OVMG deal team.</h4>
+          <p>TLG Consulting (led by Michael Latimer) brings 35+ years of infrastructure development across powered land, fiber, IP transit, and data center platforms at multi-GW scale. Michael Latimer serves a dual role as OVMG's Chief Infrastructure Officer, embedding TLG's capabilities directly into every deal OVMG brings to market. His depth across technical underwriting, site qualification, and infrastructure planning is a core differentiator in how OVMG structures its opportunities.</p>
+          <div class="impact-label">Network Role</div>
+          <div class="impact-text">The infrastructure intelligence layer — powering how OVMG evaluates, qualifies, and presents every site in its portfolio.</div>
+          <a href="https://tlgconsulting.tech" class="partner-link" target="_blank" rel="noopener">Visit website <span>→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="partner-profile reveal">
+      <div class="partner-profile-inner">
+        <div class="partner-logo-block">
+          <div class="partner-logo-box">
+            <img src="logos/brightsunsolr.png" alt="BrightSunSolr" style="max-height:70px;max-width:80%;object-fit:contain">
+          </div>
+          <div>
+            <div class="partner-logo-name">BrightSunSolr</div>
+            <div class="partner-logo-type">Strategic Power Partner</div>
+          </div>
+        </div>
+        <div class="partner-body">
+          <h4>Converting stranded solar assets into clean, productive power infrastructure.</h4>
+          <p>BrightSunSolr (founded by Justin Runnels, who also serves as OVMG's CTO) specializes in converting underutilized and stranded U.S. solar assets into productive infrastructure. The company delivers an integrated vertical stack of solar generation, battery storage, and compute infrastructure — a model that dramatically reduces power cost and grid dependency for data center operators. With 20+ years of energy infrastructure experience behind it, BrightSunSolr is a JV partner on OVMG's Baton Rouge site and a foundational power strategy across the broader portfolio.</p>
+          <div class="impact-label">Network Role</div>
+          <div class="impact-text">The clean power backbone that makes OVMG's sites operationally and environmentally viable from day one.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="partner-profile reveal">
+      <div class="partner-profile-inner">
+        <div class="partner-logo-block">
+          <div class="partner-logo-box">
+            <img src="logos/solr-ess.png" alt="SOLR ESS" style="max-height:56px;max-width:85%;object-fit:contain">
+          </div>
+          <div>
+            <div class="partner-logo-name">SOLR ESS</div>
+            <div class="partner-logo-type">Energy Storage Partner</div>
+          </div>
+        </div>
+        <div class="partner-body">
+          <h4>Behind-the-meter battery storage enabling 24/7 baseload without grid dependency.</h4>
+          <p>SOLR ESS (also led by Justin Runnels) delivers behind-the-meter battery energy storage systems purpose-built for data center infrastructure. By providing continuous, grid-independent baseload power, SOLR ESS eliminates one of the most significant constraints in data center site qualification: reliable, uninterrupted energy supply. The system is deployable across OVMG's full portfolio, including Kingsboro, Bennettsville, Millington, and Baton Rouge, and pairs directly with BrightSunSolr's solar generation layer for a fully integrated clean power stack.</p>
+          <div class="impact-label">Network Role</div>
+          <div class="impact-text">The storage layer that makes clean, continuous power a reality at every site in the OVMG portfolio.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="partner-profile reveal">
+      <div class="partner-profile-inner">
+        <div class="partner-logo-block">
+          <div class="partner-logo-box">
+            <img src="logos/vantiq.png" alt="Vantiq" style="max-height:40px;max-width:80%;object-fit:contain">
+          </div>
+          <div>
+            <div class="partner-logo-name">Vantiq</div>
+            <div class="partner-logo-type">Technology Partner</div>
+          </div>
+        </div>
+        <div class="partner-body">
+          <h4>Real-time AI and event-driven architecture for intelligent infrastructure operations.</h4>
+          <p>Vantiq (strategic relationship led by Jim Rice) provides the real-time AI and event-driven architecture platform that powers OVMG's intelligence layer. Designed for low-latency, high-throughput environments and validated for DoD, IC, and enterprise deployments, Vantiq enables dynamic, real-time responsiveness across every data center system and workflow. In the OVMG context, Vantiq represents the technology partner that elevates site operations from passive infrastructure to actively intelligent systems — a meaningful differentiator for hyperscale and federal customers.</p>
+          <div class="impact-label">Network Role</div>
+          <div class="impact-text">The AI and automation layer that makes OVMG sites intelligent, responsive, and mission-ready.</div>
+          <a href="https://vantiq.com" class="partner-link" target="_blank" rel="noopener">Visit website <span>→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="partner-profile reveal">
+      <div class="partner-profile-inner">
+        <div class="partner-logo-block">
+          <div class="partner-logo-box">
+            <img src="logos/simba-chain.svg" alt="SIMBA Chain" style="max-height:56px;max-width:80%;object-fit:contain">
+          </div>
+          <div>
+            <div class="partner-logo-name">SIMBA Chain</div>
+            <div class="partner-logo-type">Security &amp; Compliance Partner</div>
+          </div>
+        </div>
+        <div class="partner-body">
+          <h4>DoD-grade security and blockchain-anchored compliance for federal and enterprise data infrastructure.</h4>
+          <p>SIMBA Chain brings DoD-grade security and compliance infrastructure to the OVMG network. SIPR/NIPR certified and aligned with federal procurement requirements, SIMBA Chain provides the tamper-proof, blockchain-anchored data integrity layer that enterprise and government tenants require. For OVMG sites targeting federal or defense-adjacent customers, SIMBA Chain's involvement is a material differentiator — a signal of operational seriousness and procurement readiness that capital partners and operators recognize immediately.</p>
+          <div class="impact-label">Network Role</div>
+          <div class="impact-text">The compliance and security layer that makes OVMG sites ready for federal, defense, and enterprise tenants from day one.</div>
+          <a href="https://simbachain.com" class="partner-link" target="_blank" rel="noopener">Visit website <span>→</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="partner-profile reveal">
+      <div class="partner-profile-inner">
+        <div class="partner-logo-block">
+          <div class="partner-logo-box">
+            <img src="logos/carbon-sponge.png" alt="Carbon Sponge" style="max-height:56px;max-width:80%;object-fit:contain">
+          </div>
+          <div>
+            <div class="partner-logo-name">Carbon Sponge</div>
+            <div class="partner-logo-type">Sustainability Partner</div>
+          </div>
+        </div>
+        <div class="partner-body">
+          <h4>Turbine-based CO2 capture that turns data center exhaust into a revenue stream and a net-zero credential.</h4>
+          <p>Carbon Limit (founded by Tim Sperry, who also serves as OVMG's Climate Technology Advisor) deploys turbine-based carbon capture systems attached directly to data center exhaust streams. The technology captures CO2 at the source, generates carbon credit revenue, qualifies for Investment Tax Credits, and enables OVMG sites to pursue net-zero power profiles aligned with federal environmental mandates. Carbon Limit transforms what is typically a liability — the emissions footprint of a large-scale data center — into an asset that improves both the environmental and financial profile of every site it touches.</p>
+          <div class="impact-label">Network Role</div>
+          <div class="impact-text">The sustainability layer that makes OVMG's environmental commitments measurable, monetizable, and real.</div>
+          <a href="https://carbonlimit.com" class="partner-link" target="_blank" rel="noopener">Visit website <span>→</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-block">
+  <svg class="ringbg" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g fill="none" stroke="rgba(244,244,240,0.06)" stroke-width="0.8">
+      <ellipse cx="800" cy="350" rx="780" ry="280"/>
+      <ellipse cx="800" cy="350" rx="640" ry="220"/>
+      <ellipse cx="800" cy="350" rx="500" ry="170"/>
+      <ellipse cx="800" cy="350" rx="360" ry="120"/>
+      <ellipse cx="800" cy="350" rx="220" ry="70"/>
+    </g>
+  </svg>
+  <div class="wrap cta-inner">
+    <div class="eyebrow center">Join the network</div>
+    <h2>Built for the<br/>long <em>term</em>.</h2>
+    <a href="contact.html" class="btn btn-primary" style="margin-top:56px">Connect with OVMG <span class="arrow">→</span></a>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="index.html" class="logo"><img src="logos/ovmg-logo-final.png" alt="OneVibeMediaGroup" style="height:22px;width:auto;display:block;opacity:0.85"></a>
+        <p style="margin-top:16px;color:var(--fg-dim);font-size:14px;line-height:1.65;max-width:32ch">The connective tissue of the data center transaction.</p>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="platform.html">How We Work</a></li>
+          <li><a href="netzero.html">Stewardship</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Portfolio</h4>
+        <ul>
+          <li><a href="projects.html">Active Sites</a></li>
+          <li><a href="projects.html">Kingsboro, NC</a></li>
+          <li><a href="projects.html">Bennettsville, SC</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="contact.html">Connect</a></li>
+          <li><a href="mailto:tanner@onevibemediagroup.com">tanner@onevibemediagroup.com</a></li>
+          <li><a href="mailto:carsten@onevibemediagroup.com">carsten@onevibemediagroup.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© 2026 OneVibeMediaGroup. All rights reserved.</span>
+      <span>OVMG · Data Center Deal Origination</span>
+    </div>
+  </div>
+</footer>
+
+<script src="chrome.js"></script>
+</body>
+</html>
