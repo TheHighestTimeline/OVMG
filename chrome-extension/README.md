@@ -7,11 +7,16 @@ self-contained, embeddable HTML demo (ZIP).
 
 ## Install (unpacked — there's no Chrome Web Store listing for this, so this is the only way to install it)
 
-1. Download / clone this `chrome-extension/` folder onto your machine.
-2. Open `chrome://extensions` in Chrome.
-3. Turn on **Developer mode** (toggle, top right).
-4. Click **Load unpacked** and select the `chrome-extension/` folder.
-5. Pin the extension (puzzle-piece icon in the toolbar → pin "Walkthrough
+1. Download this repo from GitHub: click the green **Code** button → **Download ZIP**
+   (or `git clone` it if you're comfortable with git).
+2. **Unzip the downloaded file.** Chrome will not accept a `.zip` for the
+   next step — it needs a regular, unzipped folder.
+3. Open `chrome://extensions` in Chrome.
+4. Turn on **Developer mode** (toggle, top right).
+5. Click **Load unpacked** and select the unzipped `chrome-extension/` folder
+   directly (the one containing `manifest.json`) — not the parent repo
+   folder, and not the ZIP file.
+6. Pin the extension (puzzle-piece icon in the toolbar → pin "Walkthrough
    Recorder") so it's always one click away.
 
 Chrome will keep it installed like this across restarts. You only redo this
