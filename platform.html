@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How We Work — OVMG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .reveal.will-animate{opacity:0!important;transform:translateY(20px)!important;transition:opacity .9s ease,transform .9s ease!important}
+  .reveal.will-animate.in{opacity:1!important;transform:none!important}
+  .stewardship-block{
+    border-top:1px solid var(--line);
+    padding:80px 0;
+  }
+  .stewardship-inner{
+    display:grid;grid-template-columns:1fr 1.4fr;gap:80px;align-items:start;
+  }
+  @media(max-width:900px){.stewardship-inner{grid-template-columns:1fr;gap:40px}}
+  .stewardship-left h2{font-family:var(--serif);font-size:clamp(28px,3vw,42px);font-weight:400;letter-spacing:-0.02em;line-height:1}
+  .stewardship-left h2 em{font-style:italic;color:var(--fg-dim)}
+  .stewardship-left p{margin-top:22px;color:var(--fg-dim);font-size:15.5px;line-height:1.65;max-width:40ch}
+  .stewardship-pills{display:flex;flex-direction:column;gap:0;border:1px solid var(--line)}
+  .stewardship-pill{padding:22px 26px;border-bottom:1px solid var(--line);display:flex;gap:20px;align-items:flex-start}
+  .stewardship-pill:last-child{border-bottom:none}
+  .stewardship-pill .snum{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);padding-top:3px;min-width:28px}
+  .stewardship-pill .sbody h5{font-family:var(--serif);font-size:20px;font-weight:500;letter-spacing:-0.01em;margin-bottom:6px}
+  .stewardship-pill .sbody p{font-size:13.5px;color:var(--fg-dim);line-height:1.55;margin:0}
+
+  /* Tab filtering */
+  .card.hidden{display:none}
+</style>
+</head>
+<body data-page="platform">
+
+<!-- ===== NAV ===== -->
+<nav class="top" id="topnav">
+  <div class="wrap inner">
+    <a href="index.html" class="logo" aria-label="OVMG home"><span>OVMG</span></a>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="platform.html" class="active">How We Work</a></li>
+      <li><a href="netzero.html">Stewardship</a></li>
+      <li><a href="projects.html">Portfolio</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="contact.html" class="btn btn-ghost btn-sm">Connect <span class="arrow">→</span></a>
+  </div>
+</nav>
+
+<!-- ===== PAGE HERO ===== -->
+<header class="page-hero">
+  <div class="glow"></div>
+  <div class="grid-bg"></div>
+  <div class="wrap inner reveal">
+    <div>
+      <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>How We Work</span></div>
+      <h1>How we move<br/>a site to <em>close</em>.</h1>
+    </div>
+    <div>
+      <p class="lede">OVMG doesn't build; we connect. We originate sites, assemble the right relationships, and orchestrate every party a data center transaction requires from first conversation to close.</p>
+    </div>
+  </div>
+</header>
+
+<!-- ===== CAPABILITY CARDS ===== -->
+<section class="block" style="padding-top:80px">
+  <div class="wrap">
+    <div class="section-num reveal" style="margin-bottom:24px"><span class="bar"></span> §01 · Our Disciplines</div>
+
+    <div class="tabs reveal" role="tablist" id="disciplineTabs">
+      <button class="tab active" data-tab="all"><span>All</span><span class="idx">00</span></button>
+      <button class="tab" data-tab="sites"><span>Site Portfolio</span><span class="idx">01</span></button>
+      <button class="tab" data-tab="capital"><span>Capital</span><span class="idx">02</span></button>
+      <button class="tab" data-tab="offtaker"><span>Offtakers</span><span class="idx">03</span></button>
+      <button class="tab" data-tab="process"><span>Deal Process</span><span class="idx">04</span></button>
+      <button class="tab" data-tab="network"><span>Partner Network</span><span class="idx">05</span></button>
+    </div>
+
+    <div class="cards" id="disciplineCards">
+      <article class="card reveal" data-cat="sites">
+        <span class="ix">01</span>
+        <span class="glyph"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><path d="M3 9 H21 M9 3 V21"/></svg></span>
+        <h3>Site Origination</h3>
+        <p>We source and hold a curated portfolio of data center opportunities: greenfield, brownfield, and NTP-stage sites across multiple regions. Every site in our portfolio has been evaluated for power viability, location, and deal readiness before we bring it to a partner.</p>
+        <div class="tagrow"><span>Greenfield · Brownfield · NTP</span><span class="acc">→</span></div>
+      </article>
+      <article class="card reveal" data-cat="capital">
+        <span class="ix">02</span>
+        <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M7 12 L17 6 M7 12 L17 18"/></svg></span>
+        <h3>Capital Introduction</h3>
+        <p>We connect institutional capital, family offices, and private equity to data center opportunities at the right moment in the deal cycle. Our relationships span the full capital stack: equity, debt, and structured instruments, and we know which partners move at the pace each opportunity requires.</p>
+        <div class="tagrow"><span>Equity · Debt · Structured Capital</span><span class="acc">→</span></div>
+      </article>
+      <article class="card reveal" data-cat="offtaker">
+        <span class="ix">03</span>
+        <span class="glyph"><svg viewBox="0 0 24 24"><path d="M13 2 L4 14 H11 L9 22 L20 9 H13 Z"/></svg></span>
+        <h3>Offtaker &amp; Operator Matching</h3>
+        <p>We identify the hyperscalers, colocation operators, and enterprise tenants whose demand profile fits each site and we make the introduction count. The right offtaker at the right site changes everything about a deal's trajectory.</p>
+        <div class="tagrow"><span>Hyperscale · Colocation · Enterprise</span><span class="acc">→</span></div>
+      </article>
+      <article class="card reveal" data-cat="process">
+        <span class="ix">04</span>
+        <span class="glyph"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="5" height="10"/><rect x="9.5" y="7" width="5" height="14"/><rect x="16" y="3" width="5" height="18"/></svg></span>
+        <h3>Deal Process &amp; Data Rooms</h3>
+        <p>We build the decks, organize the data rooms, and manage every step of the transaction with the discipline a capital partner expects. Every opportunity we bring to market is documented, organized, and presented with clarity, from the first teaser to the final close.</p>
+        <div class="tagrow"><span>Decks · Data Rooms · Transaction Management</span><span class="acc">→</span></div>
+      </article>
+      <article class="card reveal" data-cat="network">
+        <span class="ix">05</span>
+        <span class="glyph"><svg viewBox="0 0 24 24"><path d="M5 19 L12 5 L19 19 Z"/><path d="M9 14 H15"/></svg></span>
+        <h3>Partner Network</h3>
+        <p>Through deep, ongoing relationships with energy, engineering, construction, and storage partners, we bring every technical capability a data center requires without the overhead of building it in-house. Our partners don't just support our deals; they help make them possible.</p>
+        <div class="tagrow"><span>Energy · Engineering · Construction · Storage</span><span class="acc">→</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STEWARDSHIP SECTION ===== -->
+<section class="block stewardship-block">
+  <div class="wrap">
+    <div class="stewardship-inner reveal">
+      <div class="stewardship-left">
+        <div class="section-num" style="margin-bottom:18px"><span class="bar"></span> §02 · Our Standard</div>
+        <h2>Built with the land<br/>and community<br/><em>in mind</em>.</h2>
+        <p>The founders of OVMG carry real backgrounds in environmental conservation and community development. These aren't credentials we bolt on; they are the lens through which we evaluate every site and every deal. As our portfolio grows, we are committed to integrating conservation practices, community benefit, and responsible land stewardship from day one.</p>
+      </div>
+      <div class="stewardship-pills">
+        <div class="stewardship-pill">
+          <span class="snum">01</span>
+          <div class="sbody">
+            <h5>Land &amp; Habitat Preservation</h5>
+            <p>We evaluate every site with an eye toward minimizing ecological disruption. Where development and conservation can coexist, we build toward that outcome, because land is not a commodity; it is a responsibility.</p>
+          </div>
+        </div>
+        <div class="stewardship-pill">
+          <span class="snum">02</span>
+          <div class="sbody">
+            <h5>Community Benefit</h5>
+            <p>Every data center we help bring to life has the potential to transform a community through jobs, infrastructure, and long-term investment. We build relationships with local stakeholders from the first site visit, not the last.</p>
+          </div>
+        </div>
+        <div class="stewardship-pill">
+          <span class="snum">03</span>
+          <div class="sbody">
+            <h5>Responsible Resource Use</h5>
+            <p>Data centers are resource-intensive by nature. We hold our sites and partner network to a standard that accounts for long-term water, land, and energy impact, and we make that part of the conversation at the deal stage, not after.</p>
+          </div>
+        </div>
+        <div class="stewardship-pill">
+          <span class="snum">04</span>
+          <div class="sbody">
+            <h5>Conservation-First Site Selection</h5>
+            <p>Our founders' history in environmental work shapes how we screen and underwrite opportunities. Sites that create irrecoverable ecological harm don't make it into our portfolio.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-block">
+  <svg class="ringbg" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g fill="none" stroke="rgba(244,244,240,0.06)" stroke-width="0.8">
+      <ellipse cx="800" cy="350" rx="780" ry="280"/>
+      <ellipse cx="800" cy="350" rx="640" ry="220"/>
+      <ellipse cx="800" cy="350" rx="500" ry="170"/>
+      <ellipse cx="800" cy="350" rx="360" ry="120"/
