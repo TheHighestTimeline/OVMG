@@ -1,174 +1,563 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>How We Work — OVMG</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platform — OVMG Hyperscale Infrastructure</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  .reveal{opacity:1!important;transform:none!important;transition:none!important}
-  .reveal.will-animate{opacity:0!important;transform:translateY(20px)!important;transition:opacity .9s ease,transform .9s ease!important}
-  .reveal.will-animate.in{opacity:1!important;transform:none!important}
-  .stewardship-block{
-    border-top:1px solid var(--line);
-    padding:80px 0;
-  }
-  .stewardship-inner{
-    display:grid;grid-template-columns:1fr 1.4fr;gap:80px;align-items:start;
-  }
-  @media(max-width:900px){.stewardship-inner{grid-template-columns:1fr;gap:40px}}
-  .stewardship-left h2{font-family:var(--serif);font-size:clamp(28px,3vw,42px);font-weight:400;letter-spacing:-0.02em;line-height:1}
-  .stewardship-left h2 em{font-style:italic;color:var(--fg-dim)}
-  .stewardship-left p{margin-top:22px;color:var(--fg-dim);font-size:15.5px;line-height:1.65;max-width:40ch}
-  .stewardship-pills{display:flex;flex-direction:column;gap:0;border:1px solid var(--line)}
-  .stewardship-pill{padding:22px 26px;border-bottom:1px solid var(--line);display:flex;gap:20px;align-items:flex-start}
-  .stewardship-pill:last-child{border-bottom:none}
-  .stewardship-pill .snum{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);padding-top:3px;min-width:28px}
-  .stewardship-pill .sbody h5{font-family:var(--serif);font-size:20px;font-weight:500;letter-spacing:-0.01em;margin-bottom:6px}
-  .stewardship-pill .sbody p{font-size:13.5px;color:var(--fg-dim);line-height:1.55;margin:0}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Tab filtering */
-  .card.hidden{display:none}
+  :root {
+    --cyan: #39BAEB;
+    --teal: #00EDA7;
+    --violet: #4A90E2;
+    --green: #58F2E4;
+    --bg: #040816;
+    --surface: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.10);
+    --text: #ffffff;
+    --text-muted: rgba(255,255,255,0.60);
+    --text-dim: rgba(255,255,255,0.45);
+  }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.6; overflow-x: hidden; }
+
+  .bg-radial { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(74,144,226,0.15) 0%, rgba(11,61,145,0.12) 25%, rgba(4,8,22,0.95) 50%, rgba(57,186,235,0.08) 75%, rgba(0,237,167,0.06) 100%); pointer-events: none; z-index: 0; }
+
+  
+
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    border-bottom: 1px solid var(--border);
+    background: rgba(4,8,22,0.70);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  }
+
+  .header-inner {
+    max-width: 1280px; margin: 0 auto; padding: 0 24px;
+    height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  
+  .logo-text .sub { font-size: 11px; letter-spacing: 0.35em; color: var(--text-muted); text-transform: uppercase; font-family: 'Syne', sans-serif; }
+  .logo-text .main { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.92); font-family: 'Syne', sans-serif; }
+  .logo-brand { height: 44px; width: auto; max-width: 220px; object-fit: contain; display: block; }
+  @media (max-width: 768px) { .logo-brand { height: 34px; max-width: 180px; } }
+
+  nav { display: flex; align-items: center; gap: 32px; }
+  nav a { font-size: 14px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  nav a:hover, nav a.active { color: var(--text); }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 100px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; font-family: 'Inter', sans-serif; }
+  .btn-white { background: #ffffff; color: #000000; }
+  .btn-white:hover { background: rgba(255,255,255,0.88); }
+  .btn-outline { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { background: rgba(255,255,255,0.10); }
+
+  main { position: relative; z-index: 1; padding-top: 68px; }
+  .section { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+  /* Breadcrumb */
+  .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim); padding: 20px 0 0; }
+  .breadcrumb a { color: var(--text-dim); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--text-muted); }
+  .breadcrumb svg { width: 14px; height: 14px; opacity: 0.5; }
+
+  /* Page hero */
+  .page-hero { padding: 40px 0 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: end; }
+
+  .page-hero-left .badge {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 100px;
+    border: 1px solid rgba(57,186,235,0.25); background: rgba(255,255,255,0.04);
+    font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(126,241,245,0.90);
+    margin-bottom: 24px; font-family: 'Syne', sans-serif;
+  }
+
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(36px, 5vw, 60px); font-weight: 700; line-height: 0.96; letter-spacing: -0.02em; }
+  .gradient-text { background: linear-gradient(90deg, var(--cyan), var(--teal), var(--violet)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: block; }
+
+  .page-hero-right p { font-size: 18px; color: var(--text-muted); line-height: 1.75; margin-bottom: 28px; }
+  .btn-row { display: flex; gap: 16px; flex-wrap: wrap; }
+
+  /* Cards */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 32px 0; }
+  .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 32px 0; }
+
+  .card { border-radius: 28px; border: 1px solid var(--border); background: var(--surface); backdrop-filter: blur(20px); overflow: hidden; padding: 40px; transition: border-color 0.3s; }
+  .card:hover { border-color: rgba(57,186,235,0.25); }
+  .card-cyan { background: linear-gradient(135deg, rgba(57,186,235,0.08), rgba(255,255,255,0.02), rgba(74,144,226,0.08)); border-color: rgba(57,186,235,0.15); }
+  .card-violet { background: linear-gradient(135deg, rgba(74,144,226,0.08), rgba(255,255,255,0.02), rgba(45,212,191,0.08)); border-color: rgba(74,144,226,0.15); }
+  .card-green { background: linear-gradient(135deg, rgba(88,242,228,0.06), rgba(255,255,255,0.02), rgba(57,186,235,0.06)); border-color: rgba(88,242,228,0.15); }
+
+  .card-label { font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(126,241,245,0.80); font-family: 'Syne', sans-serif; margin-bottom: 16px; }
+  .card-label.violet { color: rgba(196,181,253,0.80); }
+  .card-label.green { color: rgba(134,239,172,0.80); }
+
+  .card h2 { font-family: 'Syne', sans-serif; font-size: clamp(22px, 2.5vw, 32px); font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; margin-bottom: 16px; }
+  .card h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+  .card p { color: var(--text-muted); font-size: 16px; line-height: 1.75; }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .tag { padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); font-size: 13px; color: rgba(255,255,255,0.70); }
+
+  .section-heading { margin: 64px 0 32px; }
+  .section-heading .label { font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(126,241,245,0.80); font-family: 'Syne', sans-serif; margin-bottom: 12px; }
+  .section-heading h2 { font-family: 'Syne', sans-serif; font-size: clamp(28px, 3.5vw, 44px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 0; margin: 32px 0; }
+
+  .step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  .step:last-child { border-bottom: none; }
+
+  .step-num {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+
+  .step-content h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  .step-content p { color: var(--text-muted); font-size: 15px; line-height: 1.7; }
+
+  /* Check list */
+  .check-list { list-style: none; margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .check-list li { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; color: rgba(255,255,255,0.72); line-height: 1.6; }
+  .check-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--cyan); margin-top: 2px; }
+
+  /* CTA Banner */
+  .cta-banner { margin: 32px 0 96px; padding: 56px; border-radius: 32px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: space-between; gap: 32px; }
+  .cta-banner h2 { font-family: 'Syne', sans-serif; font-size: clamp(24px, 3vw, 40px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; max-width: 560px; }
+
+  /* Animations */
+  .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp 0.7s ease forwards; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+
+  /* Platform diagram */
+  .platform-visual {
+    width: 100%;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .platform-layer {
+    width: 100%;
+    padding: 14px 24px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+
+  .platform-layer:hover {
+    border-color: rgba(57,186,235,0.3);
+    background: rgba(57,186,235,0.06);
+    transform: translateX(4px);
+  }
+
+  .platform-layer .layer-label { color: var(--text-muted); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+  .platform-layer .layer-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .layer-1 .layer-dot { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+  .layer-2 .layer-dot { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+  .layer-3 .layer-dot { background: var(--violet); box-shadow: 0 0 8px var(--violet); }
+  .layer-4 .layer-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: var(--text); }
+
+  @media (max-width: 768px) {
+    nav { display: none; }
+    .mobile-menu-btn { display: block; }
+    .page-hero { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .three-col { grid-template-columns: 1fr; }
+    .cta-banner { flex-direction: column; padding: 36px 24px; }
+    .card { padding: 28px; }
+  }
+
+  /* Mobile menu overlay */
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(4,8,22,0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  .mobile-overlay.open { display: flex; }
+  .mobile-overlay a {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    padding: 10px 24px;
+    transition: color 0.2s;
+    letter-spacing: -0.01em;
+  }
+  .mobile-overlay a:hover, .mobile-overlay a.active { color: #58D0FF; }
+  .mobile-close {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 8px;
+  }
+  @media (max-width: 768px) {
+    .header-inner .btn-white { display: none; }
+    .logo-text .sub { font-size: 10px; letter-spacing: 0.25em; }
+    .logo-text .main { font-size: 13px; }
+    
+    .header-inner { height: 58px; padding: 0 16px; }
+    main { padding-top: 58px; }
+  }
+
+
+  .logo-mark { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #39BAEB, #00EDA7, #4A90E2); box-shadow: 0 0 32px rgba(57,186,235,0.35); flex-shrink: 0; }
+  @media (max-width: 768px) { .logo-mark { width: 34px; height: 34px; border-radius: 10px; } }
+
+
+  /* Mouse ripple effect */
+  .ripple-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
 </style>
 </head>
-<body data-page="platform">
+<body>
 
-<!-- ===== NAV ===== -->
-<nav class="top" id="topnav">
-  <div class="wrap inner">
-    <a href="index.html" class="logo" aria-label="OVMG home"><span>OVMG</span></a>
-    <ul>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="platform.html" class="active">How We Work</a></li>
-      <li><a href="netzero.html">Stewardship</a></li>
-      <li><a href="projects.html">Portfolio</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="contact.html">Contact</a></li>
-    </ul>
-    <a href="contact.html" class="btn btn-ghost btn-sm">Connect <span class="arrow">→</span></a>
-  </div>
-</nav>
+<div class="bg-radial"></div>
+<canvas id="rippleCanvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
 
-<!-- ===== PAGE HERO ===== -->
-<header class="page-hero">
-  <div class="glow"></div>
-  <div class="grid-bg"></div>
-  <div class="wrap inner reveal">
-    <div>
-      <div class="breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>How We Work</span></div>
-      <h1>How we move<br/>a site to <em>close</em>.</h1>
-    </div>
-    <div>
-      <p class="lede">OVMG doesn't build; we connect. We originate sites, assemble the right relationships, and orchestrate every party a data center transaction requires from first conversation to close.</p>
-    </div>
+
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/ovmg-header-logo.png" alt="OneVibe Media Group" class="logo-brand">
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="platform.html" class="active">Platform</a>
+      <a href="netzero.html">NetZero</a>
+      <a href="projects.html">Projects</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <a href="contact.html" class="btn btn-white">Strategic Review</a>
+    <button class="mobile-menu-btn" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
   </div>
 </header>
 
-<!-- ===== CAPABILITY CARDS ===== -->
-<section class="block" style="padding-top:80px">
-  <div class="wrap">
-    <div class="section-num reveal" style="margin-bottom:24px"><span class="bar"></span> §01 · Our Disciplines</div>
+<div class="mobile-overlay" id="mobileMenu">
+  <button class="mobile-close" aria-label="Close menu">
+    <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </button>
+  <a href="index.html">Home</a>
+  <a href="platform.html" class="active">Platform</a>
+  <a href="netzero.html">NetZero</a>
+  <a href="projects.html">Projects</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="contact.html" style="margin-top:12px;padding:12px 28px;border-radius:100px;background:#fff;color:#000;font-size:15px;">Strategic Review</a>
+</div>
 
-    <div class="tabs reveal" role="tablist" id="disciplineTabs">
-      <button class="tab active" data-tab="all"><span>All</span><span class="idx">00</span></button>
-      <button class="tab" data-tab="sites"><span>Site Portfolio</span><span class="idx">01</span></button>
-      <button class="tab" data-tab="capital"><span>Capital</span><span class="idx">02</span></button>
-      <button class="tab" data-tab="offtaker"><span>Offtakers</span><span class="idx">03</span></button>
-      <button class="tab" data-tab="process"><span>Deal Process</span><span class="idx">04</span></button>
-      <button class="tab" data-tab="network"><span>Partner Network</span><span class="idx">05</span></button>
+<main>
+  <div class="section">
+    <div class="breadcrumb fade-up">
+      <a href="index.html">Home</a>
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      <span>Platform</span>
     </div>
 
-    <div class="cards" id="disciplineCards">
-      <article class="card reveal" data-cat="sites">
-        <span class="ix">01</span>
-        <span class="glyph"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><path d="M3 9 H21 M9 3 V21"/></svg></span>
-        <h3>Site Origination</h3>
-        <p>We source and hold a curated portfolio of data center opportunities: greenfield, brownfield, and NTP-stage sites across multiple regions. Every site in our portfolio has been evaluated for power viability, location, and deal readiness before we bring it to a partner.</p>
-        <div class="tagrow"><span>Greenfield · Brownfield · NTP</span><span class="acc">→</span></div>
-      </article>
-      <article class="card reveal" data-cat="capital">
-        <span class="ix">02</span>
-        <span class="glyph"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M7 12 L17 6 M7 12 L17 18"/></svg></span>
-        <h3>Capital Introduction</h3>
-        <p>We connect institutional capital, family offices, and private equity to data center opportunities at the right moment in the deal cycle. Our relationships span the full capital stack: equity, debt, and structured instruments, and we know which partners move at the pace each opportunity requires.</p>
-        <div class="tagrow"><span>Equity · Debt · Structured Capital</span><span class="acc">→</span></div>
-      </article>
-      <article class="card reveal" data-cat="offtaker">
-        <span class="ix">03</span>
-        <span class="glyph"><svg viewBox="0 0 24 24"><path d="M13 2 L4 14 H11 L9 22 L20 9 H13 Z"/></svg></span>
-        <h3>Offtaker &amp; Operator Matching</h3>
-        <p>We identify the hyperscalers, colocation operators, and enterprise tenants whose demand profile fits each site and we make the introduction count. The right offtaker at the right site changes everything about a deal's trajectory.</p>
-        <div class="tagrow"><span>Hyperscale · Colocation · Enterprise</span><span class="acc">→</span></div>
-      </article>
-      <article class="card reveal" data-cat="process">
-        <span class="ix">04</span>
-        <span class="glyph"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="5" height="10"/><rect x="9.5" y="7" width="5" height="14"/><rect x="16" y="3" width="5" height="18"/></svg></span>
-        <h3>Deal Process &amp; Data Rooms</h3>
-        <p>We build the decks, organize the data rooms, and manage every step of the transaction with the discipline a capital partner expects. Every opportunity we bring to market is documented, organized, and presented with clarity, from the first teaser to the final close.</p>
-        <div class="tagrow"><span>Decks · Data Rooms · Transaction Management</span><span class="acc">→</span></div>
-      </article>
-      <article class="card reveal" data-cat="network">
-        <span class="ix">05</span>
-        <span class="glyph"><svg viewBox="0 0 24 24"><path d="M5 19 L12 5 L19 19 Z"/><path d="M9 14 H15"/></svg></span>
-        <h3>Partner Network</h3>
-        <p>Through deep, ongoing relationships with energy, engineering, construction, and storage partners, we bring every technical capability a data center requires without the overhead of building it in-house. Our partners don't just support our deals; they help make them possible.</p>
-        <div class="tagrow"><span>Energy · Engineering · Construction · Storage</span><span class="acc">→</span></div>
-      </article>
+    <div class="page-hero">
+      <div class="page-hero-left fade-up delay-1">
+        <h1>
+          One platform.<br>
+          Every layer of<br>
+          <span class="gradient-text">hyperscale delivery.</span>
+        </h1>
+      </div>
+
+      <div class="page-hero-right fade-up delay-2">
+        <p>OVMG's platform integrates site strategy, power planning, connectivity, and net-zero positioning into a single coordinated delivery system — built for hyperscale clients who need certainty at every stage.</p>
+        <div class="btn-row">
+          <a href="contact.html" class="btn btn-white">Request a Platform Overview <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+          <a href="projects.html" class="btn btn-outline">View Projects</a>
+        </div>
+      </div>
     </div>
   </div>
-</section>
 
-<!-- ===== STEWARDSHIP SECTION ===== -->
-<section class="block stewardship-block">
-  <div class="wrap">
-    <div class="stewardship-inner reveal">
-      <div class="stewardship-left">
-        <div class="section-num" style="margin-bottom:18px"><span class="bar"></span> §02 · Our Standard</div>
-        <h2>Built with the land<br/>and community<br/><em>in mind</em>.</h2>
-        <p>The founders of OVMG carry real backgrounds in environmental conservation and community development. These aren't credentials we bolt on; they are the lens through which we evaluate every site and every deal. As our portfolio grows, we are committed to integrating conservation practices, community benefit, and responsible land stewardship from day one.</p>
+  <!-- Platform layers visual -->
+  <div class="section">
+    <div class="two-col">
+      <div class="card card-cyan fade-up delay-1">
+        <h2>Four integrated layers, one coordinated system.</h2>
+        <p>Each layer of the OVMG platform is designed to work in concert with the others — eliminating the coordination gaps that slow traditional infrastructure delivery.</p>
+        <div class="tag-row">
+          <span class="tag">Site Strategy</span>
+          <span class="tag">Power</span>
+          <span class="tag">Connectivity</span>
+          <span class="tag">NetZero</span>
+        </div>
       </div>
-      <div class="stewardship-pills">
-        <div class="stewardship-pill">
-          <span class="snum">01</span>
-          <div class="sbody">
-            <h5>Land &amp; Habitat Preservation</h5>
-            <p>We evaluate every site with an eye toward minimizing ecological disruption. Where development and conservation can coexist, we build toward that outcome, because land is not a commodity; it is a responsibility.</p>
+
+      <div class="card fade-up delay-2">
+        <div class="platform-visual">
+          <div class="platform-layer layer-1">
+            <span>Site Readiness & Strategy</span>
+            <div class="flex-row" style="display:flex;align-items:center;gap:10px;">
+              <span class="layer-label">Layer 01</span>
+              <div class="layer-dot"></div>
+            </div>
           </div>
-        </div>
-        <div class="stewardship-pill">
-          <span class="snum">02</span>
-          <div class="sbody">
-            <h5>Community Benefit</h5>
-            <p>Every data center we help bring to life has the potential to transform a community through jobs, infrastructure, and long-term investment. We build relationships with local stakeholders from the first site visit, not the last.</p>
+          <div class="platform-layer layer-2">
+            <span>Power Planning & Utility Alignment</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="layer-label">Layer 02</span>
+              <div class="layer-dot"></div>
+            </div>
           </div>
-        </div>
-        <div class="stewardship-pill">
-          <span class="snum">03</span>
-          <div class="sbody">
-            <h5>Responsible Resource Use</h5>
-            <p>Data centers are resource-intensive by nature. We hold our sites and partner network to a standard that accounts for long-term water, land, and energy impact, and we make that part of the conversation at the deal stage, not after.</p>
+          <div class="platform-layer layer-3">
+            <span>Connectivity & Network Infrastructure</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="layer-label">Layer 03</span>
+              <div class="layer-dot"></div>
+            </div>
           </div>
-        </div>
-        <div class="stewardship-pill">
-          <span class="snum">04</span>
-          <div class="sbody">
-            <h5>Conservation-First Site Selection</h5>
-            <p>Our founders' history in environmental work shapes how we screen and underwrite opportunities. Sites that create irrecoverable ecological harm don't make it into our portfolio.</p>
+          <div class="platform-layer layer-4">
+            <span>NetZero Positioning & Reporting</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="layer-label">Layer 04</span>
+              <div class="layer-dot"></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ===== CTA ===== -->
-<section class="cta-block">
-  <svg class="ringbg" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <g fill="none" stroke="rgba(244,244,240,0.06)" stroke-width="0.8">
-      <ellipse cx="800" cy="350" rx="780" ry="280"/>
-      <ellipse cx="800" cy="350" rx="640" ry="220"/>
-      <ellipse cx="800" cy="350" rx="500" ry="170"/>
-      <ellipse cx="800" cy="350" rx="360" ry="120"/
+  <!-- Detailed breakdown -->
+  <div class="section">
+    <div class="section-heading fade-up">
+      <h2>Everything a hyperscale deployment needs — already aligned.</h2>
+    </div>
+
+    <div class="three-col">
+      <div class="card card-cyan fade-up delay-1">
+        <h3>Site Strategy</h3>
+        <p>Comprehensive site identification, feasibility analysis, zoning and permitting strategy, and physical readiness planning. OVMG evaluates sites against hyperscale requirements before acquisition.</p>
+        <ul class="check-list" style="margin-top:20px;">
+          <li><svg class="check-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Site feasibility & selection</li>
+          <li><svg class="check-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Zoning & permitting strategy</li>
+          <li><svg class="check-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Physical readiness planning</li>
+        </ul>
+      </div>
+
+      <div class="card card-violet fade-up delay-2">
+        <h3>Power Planning</h3>
+        <p>Scalable power strategy aligned to site capacity and demand curves. OVMG manages utility relationships, transmission planning, and backup power design to support hyperscale timelines.</p>
+        <ul class="check-list" style="margin-top:20px;">
+          <li><svg class="check-icon" fill="none" stroke="rgba(196,181,253,0.9)" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Utility relationship management</li>
+          <li><svg class="check-icon" fill="none" stroke="rgba(196,181,253,0.9)" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Transmission planning</li>
+          <li><svg class="check-icon" fill="none" stroke="rgba(196,181,253,0.9)" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Backup & redundancy design</li>
+        </ul>
+      </div>
+
+      <div class="card card-green fade-up delay-3">
+        <h3>Connectivity</h3>
+        <p>Carrier, fiber, and network access planning designed around site-to-scale execution. OVMG ensures every site has the connectivity infrastructure required before construction begins.</p>
+        <ul class="check-list" style="margin-top:20px;">
+          <li><svg class="check-icon" fill="none" stroke="rgba(134,239,172,0.9)" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Carrier & fiber planning</li>
+          <li><svg class="check-icon" fill="none" stroke="rgba(134,239,172,0.9)" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Network access design</li>
+          <li><svg class="check-icon" fill="none" stroke="rgba(134,239,172,0.9)" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Redundancy & failover</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delivery process -->
+  <div class="section">
+    <div class="section-heading fade-up">
+      <h2>From site to scale — a repeatable, proven process.</h2>
+    </div>
+
+    <div class="two-col">
+      <div class="card fade-up delay-1">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <h3>Site Identification</h3>
+              <p>OVMG evaluates candidate sites against a comprehensive hyperscale readiness criteria — power access, zoning, connectivity, and environmental positioning.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <h3>Infrastructure Alignment</h3>
+              <p>All four platform layers are aligned in parallel — site, power, connectivity, and NetZero — to eliminate sequencing delays and reduce time-to-ready.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <h3>Phased Delivery</h3>
+              <p>Projects are structured in clear phases so clients can commit capital incrementally while maintaining certainty on full-program delivery timelines.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <h3>Ongoing Optimisation</h3>
+              <p>Post-delivery monitoring, NetZero reporting, and infrastructure optimisation ensure every campus continues to perform against its original design targets.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-cyan fade-up delay-2">
+        <h2>Why OVMG clients move faster.</h2>
+        <p style="margin-bottom:24px;">Traditional infrastructure delivery treats each layer as a separate workstream. OVMG runs them in parallel from day one — reducing the coordination risk that causes most hyperscale delays.</p>
+        <div style="display:flex;flex-direction:column;gap:16px;margin-top:8px;">
+          <div style="padding:18px 20px;border-radius:16px;border:1px solid var(--border);background:rgba(0,0,0,0.2);">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:6px;">Parallel execution</div>
+            <div style="font-size:14px;color:var(--text-muted);">All four layers run simultaneously, not sequentially</div>
+          </div>
+          <div style="padding:18px 20px;border-radius:16px;border:1px solid var(--border);background:rgba(0,0,0,0.2);">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:6px;">Single point of accountability</div>
+            <div style="font-size:14px;color:var(--text-muted);">One team owns the entire delivery — no handoff gaps</div>
+          </div>
+          <div style="padding:18px 20px;border-radius:16px;border:1px solid var(--border);background:rgba(0,0,0,0.2);">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:6px;">Repeatable model</div>
+            <div style="font-size:14px;color:var(--text-muted);">Proven process that scales across multiple sites</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="section">
+    <div class="cta-banner fade-up">
+      <div>
+        <div style="font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(126,241,245,0.80);font-family:'Syne',sans-serif;margin-bottom:16px;">Get Started</div>
+        <h2>See how the OVMG platform maps to your infrastructure requirements.</h2>
+      </div>
+      <a href="contact.html" class="btn btn-white" style="white-space:nowrap;flex-shrink:0;">
+        Request Platform Overview
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</main>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) entry.target.style.animationPlayState = 'running'; });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => {
+    if (el.getBoundingClientRect().top > window.innerHeight) {
+      el.style.animationPlayState = 'paused';
+      observer.observe(el);
+    }
+  });
+
+  // Mobile menu toggle
+  var mobileBtn = document.querySelector('.mobile-menu-btn');
+  var mobileMenu = document.getElementById('mobileMenu');
+  if (mobileBtn && mobileMenu) {
+    mobileBtn.addEventListener('click', function() { mobileMenu.classList.add('open'); });
+  }
+  var mobileClose = document.querySelector('.mobile-close');
+  if (mobileClose && mobileMenu) {
+    mobileClose.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  }
+  // Close menu when clicking a link
+  if (mobileMenu) {
+    mobileMenu.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+    });
+  }
+
+
+  
+
+
+  // Ripple effect
+  (function(){
+    var c = document.getElementById('rippleCanvas');
+    if(!c) return;
+    var ctx = c.getContext('2d');
+    var ripples = [];
+    var last = 0;
+    function sz(){ c.width = window.innerWidth; c.height = window.innerHeight; }
+    sz();
+    window.addEventListener('resize', sz);
+    document.addEventListener('mousemove', function(e){
+      var now = Date.now();
+      if(now - last > 80){
+        ripples.push({x:e.clientX, y:e.clientY, r:0, o:0.3});
+        last = now;
+      }
+    });
+    function draw(){
+      ctx.clearRect(0,0,c.width,c.height);
+      for(var i=ripples.length-1;i>=0;i--){
+        var rp = ripples[i];
+        rp.r += 1.5;
+        rp.o -= 0.004;
+        if(rp.o <= 0){ ripples.splice(i,1); continue; }
+        ctx.beginPath();
+        ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(74,144,226,' + rp.o + ')';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+</script>
+</body>
+</html>

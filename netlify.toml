@@ -1,3 +1,6 @@
-[build]
-  publish = "."
-  command = ""
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = ""
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
