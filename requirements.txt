@@ -1,0 +1,10 @@
+crewai>=0.80.0
+crewai-tools>=0.20.0
+langchain-community>=0.3.0
+apify-client>=1.8.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+APScheduler>=3.10.0
+gitpython>=3.1.40
+lxml>=5.0.0
