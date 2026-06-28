@@ -18,23 +18,10 @@
       ::-webkit-scrollbar-thumb { background: #ddd3bb; border-radius: 999px; }
       /* Clerk modal z-index fix */
       .cl-rootBox { z-index: 9999; }
-
-      /* ── Dark mode ──────────────────────────────────────────────────────────
-         A real dark theme: the JS palette (src/constants.js) swaps its tokens to
-         dark values and the React root re-renders. This rule only sets the
-         pre-paint page background so there's no light flash before React mounts;
-         scrollbar tuned to match. No invert filter (which previously flipped
-         every color instead of theming). */
-      html.ovmg-dark, html.ovmg-dark body { background: #0e1014; }
-      html.ovmg-dark ::-webkit-scrollbar-thumb { background: #3a434f; }
     </style>
-    <script>
-      /* Apply saved theme before first paint to avoid a light flash. */
-      try { if (localStorage.getItem('ovmg.theme') === 'dark') document.documentElement.classList.add('ovmg-dark'); } catch (e) {}
-    </script>
+    <script type="module" crossorigin src="/assets/index-CvlDjZBs.js"></script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <div id="root"></div>
   </body>
 </html>
